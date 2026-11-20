@@ -1,0 +1,981 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Prep Tracker</title>
+<meta name="theme-color" content="#ffffff" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root { color-scheme: light;
+    --bg:#f6f7f9; --surface:#ffffff; --subtle:#f9fafb; --border:#e4e7ec; --border2:#d0d5dd;
+    --text:#101828; --text2:#344054; --muted:#667085; --faint:#98a2b3;
+    --brand:#2563eb; --brand-600:#1d4ed8; --brand-50:#eff4ff; --brand-100:#dbe6fe;
+    --ok:#12b76a; --ok-50:#ecfdf3; --ok-700:#027a48; --warn:#f79009; --warn-50:#fffaeb; --warn-700:#b54708; --bad:#f04438; --bad-50:#fef3f2; --bad-700:#b42318;
+    --series:#2a78d6; --track:#eef0f3; --h0:#f2f4f7; --h1:#cde2fb; --h2:#86b6ef; --h3:#2a78d6; --h4:#184f95;
+    --r-sm:8px; --r:12px; --r-lg:16px;
+    --shadow-sm:0 1px 2px rgba(16,24,40,.05); --shadow:0 1px 3px rgba(16,24,40,.08), 0 1px 2px rgba(16,24,40,.04); --shadow-lg:0 12px 24px -6px rgba(16,24,40,.12), 0 4px 8px -2px rgba(16,24,40,.06);
+    --font:"Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  *, *::before, *::after { box-sizing:border-box; }
+  html { -webkit-text-size-adjust:100%; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14.5px/1.55 var(--font); -webkit-font-smoothing:antialiased; }
+  button, input, select, textarea { font:inherit; color:inherit; }
+  :focus-visible { outline:2px solid var(--brand); outline-offset:2px; }
+  .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  svg.i { width:18px; height:18px; flex:none; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+
+  /* ---------- shell ---------- */
+  .app { display:grid; grid-template-columns:256px minmax(0,1fr); min-height:100vh; }
+  .sidebar { position:sticky; top:0; height:100vh; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:18px 14px; gap:2px; z-index:40; }
+  .brand { display:flex; align-items:center; gap:11px; padding:4px 8px 18px; }
+  .brand .logo { width:34px; height:34px; border-radius:10px; background:var(--brand); display:grid; place-items:center; color:#fff; }
+  .brand b { display:block; font-size:15px; font-weight:800; letter-spacing:-.01em; }
+  .brand small { color:var(--muted); font-size:12px; }
+  .navgroup { color:var(--faint); font-size:12px; font-weight:600; padding:14px 10px 6px; }
+  .nav { display:flex; align-items:center; gap:10px; width:100%; border:0; background:transparent; color:var(--text2); font-weight:600; font-size:14px; text-align:left; padding:8px 10px; border-radius:var(--r-sm); cursor:pointer; }
+  .nav:hover { background:var(--subtle); color:var(--text); }
+  .nav.on { background:var(--brand-50); color:var(--brand-600); }
+  .nav .count { margin-left:auto; font-size:12px; color:var(--muted); background:var(--subtle); border:1px solid var(--border); border-radius:99px; padding:0 8px; font-weight:600; }
+  .nav.on .count { color:var(--brand-600); border-color:var(--brand-100); background:#fff; }
+  .side-foot { margin-top:auto; display:grid; gap:10px; }
+  .level { border:1px solid var(--border); border-radius:var(--r); padding:12px; background:var(--subtle); }
+  .level .lv-top { display:flex; justify-content:space-between; font-size:12.5px; color:var(--muted); }
+  .level b { font-size:14px; color:var(--text); }
+  .main { min-width:0; display:flex; flex-direction:column; }
+  .topbar { position:sticky; top:0; z-index:30; background:rgba(255,255,255,.88); backdrop-filter:saturate(1.6) blur(10px); -webkit-backdrop-filter:saturate(1.6) blur(10px); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; padding:12px clamp(16px,3vw,32px); padding-top:max(12px, env(safe-area-inset-top)); }
+  .topbar h1 { font-size:18px; margin:0; font-weight:800; letter-spacing:-.015em; }
+  .topbar p { margin:0; color:var(--muted); font-size:12.5px; }
+  .topbar .grow { flex:1; min-width:0; }
+  .btn.menu-btn { display:none; }
+  .page { padding:22px clamp(16px,3vw,32px) 60px; max-width:1240px; width:100%; }
+  .overlay { display:none; }
+  @media (max-width:960px) {
+    .app { grid-template-columns:1fr; }
+    .sidebar { position:fixed; left:0; top:0; bottom:0; width:280px; transform:translateX(-102%); transition:transform .25s ease; box-shadow:var(--shadow-lg); }
+    .sidebar.open { transform:none; }
+    .overlay.on { display:block; position:fixed; inset:0; background:rgba(16,24,40,.35); z-index:35; }
+    .btn.menu-btn { display:inline-flex; }
+  }
+
+  /* ---------- primitives ---------- */
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; height:38px; padding:0 14px; border-radius:var(--r-sm); border:1px solid var(--border2); background:var(--surface); color:var(--text2); font-weight:600; font-size:14px; cursor:pointer; box-shadow:var(--shadow-sm); white-space:nowrap; transition:background .15s, border-color .15s; }
+  .btn:hover { background:var(--subtle); }
+  .btn.primary { background:var(--brand); border-color:var(--brand); color:#fff; }
+  .btn.primary:hover { background:var(--brand-600); border-color:var(--brand-600); }
+  .btn.sm { height:32px; padding:0 11px; font-size:13px; }
+  .btn.icon { width:38px; padding:0; }
+  .btn.ghost { border-color:transparent; box-shadow:none; background:transparent; }
+  .panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); box-shadow:var(--shadow-sm); }
+  .panel-h { display:flex; align-items:center; gap:10px; padding:16px 18px 0; }
+  .panel-h h2 { font-size:15px; font-weight:700; margin:0; letter-spacing:-.01em; }
+  .panel-h p { margin:2px 0 0; color:var(--muted); font-size:13px; }
+  .panel-h .grow { flex:1; min-width:0; }
+  .panel-b { padding:14px 18px 18px; }
+  .badge { display:inline-flex; align-items:center; gap:5px; height:22px; padding:0 9px; border-radius:99px; font-size:12px; font-weight:600; background:var(--subtle); color:var(--text2); border:1px solid var(--border); white-space:nowrap; }
+  .badge.brand { background:var(--brand-50); color:var(--brand-600); border-color:var(--brand-100); }
+  .badge.ok { background:var(--ok-50); color:var(--ok-700); border-color:#abefc6; }
+  .badge.warn { background:var(--warn-50); color:var(--warn-700); border-color:#fedf89; }
+  .badge.bad { background:var(--bad-50); color:var(--bad-700); border-color:#fecdca; }
+  .badge .dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+  .progress { height:8px; border-radius:99px; background:var(--track); overflow:hidden; }
+  .progress i { display:block; height:100%; background:var(--brand); border-radius:99px; transition:width .5s cubic-bezier(.2,.8,.2,1); }
+  .progress.ok i { background:var(--ok); }
+  .muted { color:var(--muted); }
+
+  /* ---------- custom checkbox ---------- */
+  .cb { display:inline-flex; align-items:flex-start; gap:10px; cursor:pointer; position:relative; }
+  .cb input { position:absolute; opacity:0; width:18px; height:18px; margin:0; cursor:pointer; }
+  .cb .box { width:18px; height:18px; flex:none; margin-top:2px; border:1.5px solid var(--border2); border-radius:5px; background:var(--surface); display:grid; place-items:center; transition:background .15s, border-color .15s, transform .15s; }
+  .cb .box svg { width:12px; height:12px; stroke:#fff; stroke-width:3; fill:none; stroke-dasharray:16; stroke-dashoffset:16; transition:stroke-dashoffset .25s ease .05s; }
+  .cb input:checked + .box { background:var(--brand); border-color:var(--brand); }
+  .cb input:checked + .box svg { stroke-dashoffset:0; }
+  .cb input:focus-visible + .box { outline:2px solid var(--brand); outline-offset:2px; }
+  .cb:active .box { transform:scale(.9); }
+  .cb .lab { color:var(--text2); }
+  .cb input:checked ~ .lab { color:var(--muted); text-decoration:line-through; text-decoration-color:var(--faint); }
+
+  /* ---------- toggle ---------- */
+  .toggle { display:inline-flex; align-items:center; gap:10px; cursor:pointer; border:0; background:transparent; padding:0; color:var(--text2); font-weight:600; font-size:13.5px; }
+  .toggle .track { width:36px; height:20px; border-radius:99px; background:var(--border2); position:relative; transition:background .2s; flex:none; }
+  .toggle .track::after { content:''; position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(16,24,40,.25); transition:transform .25s cubic-bezier(.3,1.4,.5,1); }
+  .toggle[aria-checked="true"] .track { background:var(--brand); }
+  .toggle[aria-checked="true"] .track::after { transform:translateX(16px); }
+
+  /* ---------- radio: segmented + cards + rating ---------- */
+  .seg { display:inline-flex; background:var(--subtle); border:1px solid var(--border); border-radius:10px; padding:3px; gap:2px; }
+  .seg label { position:relative; }
+  .seg input { position:absolute; opacity:0; inset:0; margin:0; cursor:pointer; }
+  .seg span { display:block; padding:5px 12px; border-radius:7px; font-size:13px; font-weight:600; color:var(--muted); white-space:nowrap; transition:background .15s, color .15s; }
+  .seg input:checked + span { background:var(--surface); color:var(--text); box-shadow:var(--shadow); }
+  .seg input:focus-visible + span { outline:2px solid var(--brand); }
+  .rcards { display:grid; gap:10px; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); }
+  .rcard { position:relative; border:1px solid var(--border); border-radius:var(--r); padding:12px 14px 12px 40px; cursor:pointer; background:var(--surface); transition:border-color .15s, box-shadow .15s; }
+  .rcard input { position:absolute; opacity:0; }
+  .rcard::before { content:''; position:absolute; left:14px; top:15px; width:16px; height:16px; border-radius:50%; border:1.5px solid var(--border2); background:var(--surface); transition:border .15s; }
+  .rcard:has(input:checked) { border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-50); }
+  .rcard:has(input:checked)::before { border:5px solid var(--brand); }
+  .rcard:has(input:focus-visible) { outline:2px solid var(--brand); outline-offset:2px; }
+  .rcard b { display:block; font-size:14px; }
+  .rcard small { color:var(--muted); }
+  .rating { display:inline-flex; gap:4px; }
+  .rating label { position:relative; }
+  .rating input { position:absolute; opacity:0; inset:0; margin:0; cursor:pointer; }
+  .rating span { width:30px; height:30px; display:grid; place-items:center; border-radius:8px; border:1px solid var(--border); font-size:12.5px; font-weight:700; color:var(--muted); background:var(--surface); transition:all .15s; }
+  .rating label:hover span { border-color:var(--brand); color:var(--brand); }
+  .rating input:checked + span, .rating .lit span { background:var(--brand); border-color:var(--brand); color:#fff; }
+  .rating input:focus-visible + span { outline:2px solid var(--brand); outline-offset:2px; }
+
+  /* ---------- dropdown / multiselect / datepicker ---------- */
+  .dd { position:relative; display:inline-block; }
+  .dd-btn { display:inline-flex; align-items:center; gap:8px; height:38px; padding:0 10px 0 12px; border-radius:var(--r-sm); border:1px solid var(--border2); background:var(--surface); box-shadow:var(--shadow-sm); cursor:pointer; font-size:13.5px; font-weight:600; color:var(--text2); min-width:150px; }
+  .dd-btn .v { flex:1; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .dd-btn .k { color:var(--muted); font-weight:500; }
+  .dd-btn svg.chev { width:16px; height:16px; color:var(--muted); transition:transform .2s; }
+  .dd.open .dd-btn { border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-50); }
+  .dd.open .dd-btn svg.chev { transform:rotate(180deg); }
+  .pop { position:absolute; z-index:50; top:calc(100% + 6px); left:0; min-width:100%; background:var(--surface); border:1px solid var(--border); border-radius:var(--r); box-shadow:var(--shadow-lg); padding:6px; animation:pop .14s ease-out; }
+  .pop.right { left:auto; right:0; }
+  @keyframes pop { from { opacity:0; transform:translateY(-4px); } }
+  .opt { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; cursor:pointer; font-size:13.5px; color:var(--text2); white-space:nowrap; }
+  .opt[aria-selected="true"] { color:var(--brand-600); font-weight:700; }
+  .opt.act, .opt:hover { background:var(--subtle); }
+  .opt .tick { margin-left:auto; color:var(--brand); }
+  .pop-foot { display:flex; justify-content:space-between; gap:8px; border-top:1px solid var(--border); margin-top:6px; padding:8px 4px 2px; }
+  .cal { width:288px; padding:10px; }
+  .cal-h { display:flex; align-items:center; justify-content:space-between; padding:2px 2px 8px; font-weight:700; }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; text-align:center; }
+  .cal-grid .dow { font-size:11.5px; color:var(--muted); font-weight:600; padding:4px 0; }
+  .cal-grid button { height:36px; border:0; border-radius:8px; background:transparent; cursor:pointer; font-size:13px; color:var(--text2); }
+  .cal-grid button:hover { background:var(--subtle); }
+  .cal-grid button.out { color:var(--faint); }
+  .cal-grid button.today { box-shadow:inset 0 0 0 1px var(--border2); font-weight:700; }
+  .cal-grid button.sel { background:var(--brand); color:#fff; font-weight:700; }
+  .cal-grid button:disabled { color:var(--border2); cursor:not-allowed; }
+  .input { height:38px; border:1px solid var(--border2); border-radius:var(--r-sm); background:var(--surface); padding:0 12px 0 36px; font-size:13.5px; box-shadow:var(--shadow-sm); width:100%; }
+  .input:focus { outline:none; border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-50); }
+  .search { position:relative; flex:1; min-width:180px; }
+  .search svg { position:absolute; left:11px; top:10px; color:var(--muted); }
+
+  /* ---------- layout pieces ---------- */
+  .toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:18px; }
+  .toolbar .sp { flex:1; }
+  .kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; margin-bottom:16px; }
+  @media (max-width:1100px) { .kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+  @media (max-width:520px) { .kpis { grid-template-columns:1fr 1fr; gap:10px; } .kpi { padding:12px; } .kpi .val { font-size:24px; margin:8px 0 4px; } .kpi .lab .ic { display:none; } .kpi .note { font-size:12px; } }
+  .kpi { padding:16px 18px; }
+  .kpi .lab { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:13px; font-weight:600; }
+  .kpi .lab .ic { width:30px; height:30px; border-radius:8px; display:grid; place-items:center; background:var(--brand-50); color:var(--brand); }
+  .kpi .lab .ic.warn { background:var(--warn-50); color:var(--warn); }
+  .kpi .lab .ic.ok { background:var(--ok-50); color:var(--ok); }
+  .kpi .val { font-size:30px; font-weight:800; letter-spacing:-.02em; margin:10px 0 6px; font-variant-numeric:tabular-nums; line-height:1.1; }
+  .kpi .val small { font-size:15px; color:var(--muted); font-weight:600; }
+  .kpi .note { font-size:12.5px; color:var(--muted); }
+  .kpi .note b { color:var(--ok-700); }
+  .kpi .note b.down { color:var(--bad-700); }
+  .cols { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:16px; margin-bottom:16px; }
+  .cols2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+  @media (max-width:1100px) { .cols, .cols2 { grid-template-columns:1fr; } }
+  .nba { display:flex; gap:14px; align-items:flex-start; background:linear-gradient(180deg, var(--brand-50), #fff 70%); border:1px solid var(--brand-100); border-radius:var(--r); padding:14px 16px; }
+  .nba .ic { width:36px; height:36px; border-radius:10px; background:var(--brand); color:#fff; display:grid; place-items:center; flex:none; }
+  .nba .t { font-weight:700; }
+  .nba .grow { flex:1; min-width:0; }
+  @media (max-width:560px) { .nba { flex-wrap:wrap; } .nba .grow { flex-basis:calc(100% - 52px); } .nba .btn { width:100%; } }
+  .qrow { display:flex; align-items:center; gap:12px; padding:12px 0; border-top:1px solid var(--border); }
+  .qrow:first-child { border-top:0; }
+  .qrow .grow { flex:1; min-width:0; }
+  .qrow .t { font-weight:600; color:var(--text); }
+  .meta { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+  .goal { display:flex; align-items:center; gap:16px; }
+  .goal .t { font-weight:700; font-size:16px; }
+  .miles { display:grid; gap:8px; margin-top:14px; }
+  .mile { display:flex; align-items:center; gap:10px; font-size:13.5px; color:var(--text2); }
+  .mile .m { width:22px; height:22px; border-radius:50%; display:grid; place-items:center; border:1.5px solid var(--border2); color:var(--faint); flex:none; }
+  .mile.done .m { background:var(--ok); border-color:var(--ok); color:#fff; }
+  .mile.next .m { border-color:var(--brand); color:var(--brand); }
+  .mile .r { margin-left:auto; color:var(--muted); font-size:12.5px; }
+  .chart h3 { margin:0; font-size:14.5px; font-weight:700; }
+  .chart p { margin:2px 0 10px; color:var(--muted); font-size:12.5px; }
+
+  /* skills list */
+  .item { margin-bottom:12px; overflow:hidden; }
+  .item-h { display:flex; align-items:center; gap:14px; padding:14px 18px; cursor:pointer; border:0; background:transparent; width:100%; text-align:left; }
+  .item-h:hover { background:var(--subtle); }
+  .item-h .grow { flex:1; min-width:0; }
+  .item-h .t { font-weight:700; font-size:14.5px; color:var(--text); }
+  .item-h .why { color:var(--muted); font-size:13px; margin-top:2px; }
+  .item-h .pg { width:150px; flex:none; }
+  .item-h .pg small { display:block; text-align:right; color:var(--muted); font-size:12px; margin-bottom:4px; font-weight:600; }
+  .item-h svg.chev { width:18px; height:18px; color:var(--muted); transition:transform .2s; flex:none; }
+  .item.open .item-h svg.chev { transform:rotate(180deg); }
+  .item-b { display:none; padding:4px 18px 16px 18px; border-top:1px solid var(--border); }
+  .item.open .item-b { display:block; }
+  .tasks { display:grid; gap:8px; margin:12px 0; }
+  @media (max-width:640px) { .item-h { flex-wrap:wrap; } .item-h .pg { width:100%; order:3; } }
+  textarea.notes { width:100%; min-height:84px; border:1px solid var(--border2); border-radius:var(--r-sm); padding:10px 12px; font-size:13.5px; resize:vertical; background:var(--subtle); }
+  textarea.notes:focus { outline:none; border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-50); background:#fff; }
+  .lbl { font-size:12.5px; font-weight:700; color:var(--text2); margin:10px 0 6px; }
+
+  /* questions table */
+  .qtable { width:100%; }
+  .qt-row { display:grid; grid-template-columns:minmax(0,1fr) 170px auto; gap:16px; align-items:center; padding:14px 18px; border-top:1px solid var(--border); }
+  .qt-row:first-child { border-top:0; }
+  .qt-head { display:grid; grid-template-columns:minmax(0,1fr) 170px auto; gap:16px; padding:10px 18px; background:var(--subtle); border-bottom:1px solid var(--border); color:var(--muted); font-size:12.5px; font-weight:700; border-radius:var(--r-lg) var(--r-lg) 0 0; }
+  .qt-more { grid-column:1 / -1; }
+  .qt-more summary { color:var(--brand-600); font-size:13px; font-weight:600; cursor:pointer; }
+  @media (max-width:760px) { .qt-row, .qt-head { grid-template-columns:1fr; gap:10px; } .qt-head { display:none; } }
+
+  /* rounds */
+  .steps { position:relative; }
+  .step { display:grid; grid-template-columns:32px minmax(0,1fr); gap:14px; padding-bottom:18px; position:relative; }
+  .step:not(:last-child)::before { content:''; position:absolute; left:15px; top:34px; bottom:2px; width:2px; background:var(--border); }
+  .step.passed:not(:last-child)::before { background:var(--ok); }
+  .step .n { width:32px; height:32px; border-radius:50%; display:grid; place-items:center; font-weight:800; font-size:13px; border:2px solid var(--border2); color:var(--muted); background:var(--surface); }
+  .step.cur .n { border-color:var(--brand); color:var(--brand); box-shadow:0 0 0 4px var(--brand-50); }
+  .step.passed .n { background:var(--ok); border-color:var(--ok); color:#fff; }
+  .step.no .n { background:var(--bad-50); border-color:var(--bad); color:var(--bad); }
+  .step .top { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .step .top .t { flex:1; min-width:160px; font-weight:700; }
+  .step .d { color:var(--muted); font-size:13.5px; margin-top:4px; }
+
+  /* charts + misc */
+  svg text { fill:var(--muted); font-size:12px; font-family:var(--font); }
+  .tip { position:fixed; z-index:60; pointer-events:none; background:var(--text); color:#fff; font-size:12.5px; font-weight:600; padding:6px 10px; border-radius:8px; white-space:nowrap; opacity:0; transition:opacity .12s; box-shadow:var(--shadow-lg); }
+  .tip.on { opacity:1; }
+  details.tbl summary { cursor:pointer; color:var(--brand-600); font-size:12.5px; font-weight:600; margin-top:6px; }
+  table.data { width:100%; border-collapse:collapse; font-size:13px; margin-top:6px; }
+  table.data td, table.data th { border-bottom:1px solid var(--border); padding:6px 8px; text-align:left; }
+  .empty { text-align:center; padding:40px 20px; color:var(--muted); }
+  .empty b { display:block; color:var(--text); font-size:15px; margin-bottom:4px; }
+  .modal { position:fixed; inset:0; z-index:70; background:rgba(16,24,40,.45); display:grid; place-items:center; padding:16px; animation:fade .15s; }
+  @keyframes fade { from { opacity:0; } }
+  .modal .box { width:min(520px,100%); background:var(--surface); border-radius:var(--r-lg); box-shadow:var(--shadow-lg); padding:22px; }
+  .modal h3 { font-size:18px; margin:6px 0 14px; line-height:1.35; }
+  .clock { position:relative; width:160px; height:160px; margin:6px auto 12px; }
+  .clock svg { width:160px; height:160px; transform:rotate(-90deg); }
+  .clock .num { position:absolute; inset:0; display:grid; place-items:center; font-size:32px; font-weight:800; font-variant-numeric:tabular-nums; }
+  .toast { position:fixed; right:20px; bottom:20px; z-index:80; display:flex; gap:10px; align-items:center; background:var(--text); color:#fff; padding:12px 16px; border-radius:var(--r); box-shadow:var(--shadow-lg); font-size:13.5px; font-weight:600; transform:translateY(16px); opacity:0; transition:all .25s; max-width:calc(100vw - 40px); }
+  .toast.on { transform:none; opacity:1; }
+  .toast .ic { color:#6ce9a6; }
+  .confetti { position:fixed; top:-10px; width:7px; height:12px; z-index:90; pointer-events:none; animation:fall 1.6s ease-in forwards; border-radius:2px; }
+  @keyframes fall { to { transform:translateY(105vh) rotate(540deg); opacity:.2; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; } .confetti { display:none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar" aria-label="Navigation"></aside>
+  <div class="overlay" id="overlay"></div>
+  <div class="main">
+    <header class="topbar" id="topbar"></header>
+    <div class="page">
+      <div class="toolbar" id="toolbar"></div>
+      <main id="app"></main>
+    </div>
+  </div>
+</div>
+<div class="tip" id="tip"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+// ------------------------------------------------------------------ data
+// role: apm | fde | both. kind: gap (missing) | enhance (have it, make it strong) | risk
+const SKILLS = [
+  { id:'risk-arrears', role:'both', kind:'risk', area:'Profile', title:'Clear the arrears before the 2027 start date', why:'Every offer depends on finishing the degree. This is the single biggest risk.',
+    tasks:['List every arrear with its exam date','Clear as many as possible this exam session','Plan the rest for the Apr/May 2027 session','Prepare a 20-second honest answer if asked (what happened, what you are doing, result)'] },
+  { id:'risk-english', role:'both', kind:'risk', area:'Communication', title:'Fluent spoken English for 45-minute interviews', why:'Every round is a live conversation. Clarity and structure matter as much as the answer.',
+    tasks:['30 min of spoken English daily (explain a project to your phone camera, watch it back)','Answer 1 product question out loud daily with a timer','2 mock interviews a week (friends or free peer-mock sites)','Read 1 tech article a day and summarise it in 3 sentences out loud'] },
+  { id:'gap-metrics', role:'apm', kind:'gap', area:'Metrics', title:'Product metrics and analytics', why:'"Define success", "why did X drop" and A/B questions appear in nearly every PM loop.',
+    tasks:['Learn: north-star metric, input metrics, guardrail metrics','Learn: funnel, retention cohort, DAU/MAU, conversion','Practise 10 "metric dropped, why?" questions with a root-cause tree','Add real usage tracking to Book Bank or Study Hub and write down real numbers'] },
+  { id:'gap-sql', role:'both', kind:'gap', area:'Technical', title:'SQL for analysis', why:'Analytical rounds and FDE data work expect you to pull and reason over data.',
+    tasks:['Mode SQL tutorial (basic + intermediate)','LeetCode SQL 50','Write 5 queries on your own project data (e.g. weekly active borrowers)'] },
+  { id:'gap-ab', role:'apm', kind:'gap', area:'Metrics', title:'A/B testing and experiments', why:'You should be able to design a test, pick metrics and read a result.',
+    tasks:['Udacity "A/B Testing" (free)','Run one real test on the portfolio (two Byte message variants, compare Connect clicks in GA4)','Explain sample size, significance and novelty effect in plain words'] },
+  { id:'gap-sense', role:'apm', kind:'gap', area:'Product sense', title:'Product design framework, practised', why:'Product design is the round most candidates fail: unclear users, no prioritisation.',
+    tasks:['Learn one framework: clarify → users → pain points → solutions → prioritise → MVP → metrics → risks','Read "Decode and Conquer" (Lewis Lin), product design chapters','Do 20 timed design questions out loud (bank below)','Get 3 answers reviewed by someone'] },
+  { id:'gap-estimation', role:'apm', kind:'gap', area:'Estimation', title:'Estimation (market sizing)', why:'Tests structured thinking under ambiguity, not the exact number.',
+    tasks:['Learn top-down vs bottom-up','Memorise anchors: India ~1.45B people, ~1B smartphone users, Chennai ~12M','Do 10 estimation questions (bank below), say every assumption out loud','Always sanity-check the final number'] },
+  { id:'gap-strategy', role:'apm', kind:'gap', area:'Strategy', title:'Product strategy and business sense', why:'"Should Google enter X?" needs market, competition, Google assets and a clear call.',
+    tasks:['Learn: market size, competitors, Google advantage, risks, recommendation','Follow 3 Google product launches and write a 1-page take on each','Practise 8 strategy questions (bank below)'] },
+  { id:'gap-research', role:'apm', kind:'gap', area:'Product sense', title:'User research', why:'PMs are expected to talk to users and turn findings into decisions.',
+    tasks:['Interview 5 Book Bank users with 5 open questions','Write a 1-page "what I learned, what I changed"','Use it as a story in interviews'] },
+  { id:'gap-prd', role:'apm', kind:'gap', area:'Product sense', title:'Write a PRD (product requirements document)', why:'A real artifact that proves product thinking; great to link from the portfolio.',
+    tasks:['PRD for Thoranam: problem, users, goals, metrics, MVP scope, non-goals, risks','Keep it to 2 pages','Link it from the portfolio and LinkedIn Featured'] },
+  { id:'gap-dsa', role:'fde', kind:'gap', area:'Coding', title:'Data structures and algorithms', why:'FDE loops include production-style coding and DSA.',
+    tasks:['NeetCode 150 (arrays, hashing, two pointers, sliding window, trees, graphs, DP basics)','2 problems a day, explain the approach out loud first','Practise in a plain editor without autocomplete','1 timed mock coding interview a week'] },
+  { id:'gap-sysdesign', role:'fde', kind:'gap', area:'System design', title:'System design, especially agentic / LLM systems', why:'Reported FDE prompts ask you to design an agentic system and handle scale and privacy.',
+    tasks:['Learn: APIs, queues, caching, DBs, scaling, rate limits','Learn: RAG pipeline, eval, guardrails, cost/latency trade-offs, PII handling','Design NEXUS on a whiteboard in 35 minutes, then critique it','Practise the FDE prompts in the bank below'] },
+  { id:'gap-gcp', role:'fde', kind:'gap', area:'Technical', title:'Google Cloud and Vertex AI basics', why:'FDEs build on Google Cloud for customers.',
+    tasks:['Google Cloud Skills Boost: free generative AI learning path','Build one small RAG demo on Vertex AI / Gemini API','Know the main services: Cloud Run, BigQuery, Vertex AI, Pub/Sub, IAM'] },
+  { id:'gap-client', role:'fde', kind:'gap', area:'Communication', title:'Client-facing technical conversation', why:'A reported FDE rejection reason: "not technical enough to face customers".',
+    tasks:['Practise clarifying vague requirements with 5 questions before designing','Explain a technical trade-off to a non-technical person (record it)','Use your freelance client stories as evidence'] },
+  { id:'enh-stories', role:'both', kind:'enhance', area:'Behavioral', title:'6 STAR stories with numbers', why:'Googleyness and leadership questions are answered with real stories.',
+    tasks:['Led without authority: ECEA Study Hub / Book Bank','Unclear request: a Deep Aspects client → scoped MVP','Trade-off: JobGenie local models vs paid API','Failure and what you learned (honest)','Built something people used: ELMS (50+ staff)','Thought about failure cases: SensorGuard recovery tiers','Put a real number in each story'] },
+  { id:'enh-projects', role:'both', kind:'enhance', area:'Technical', title:'Explain each project in 60 seconds and 5 minutes', why:'Interviewers dig into your resume. Shallow answers hurt.',
+    tasks:['Alpha Cloud Labs occlusion engine','NEXUS','SensorGuard','JobGenie','CJP Volunteer Portal','For each: problem, your role, key decision, result, what you would change'] },
+  { id:'enh-ai', role:'both', kind:'enhance', area:'Technical', title:'Deepen AI/ML fundamentals you already use', why:'You list RAG, agents, YOLO, scikit-learn; expect "why" and "how" questions.',
+    tasks:['RAG: chunking, embeddings, retrieval quality, hallucination control, evaluation','Agents: tool use, planning, failure modes, guardrails','CV: segmentation vs detection, metrics (mAP, IoU)','ML: bias/variance, overfitting, precision/recall, SHAP'] },
+  { id:'enh-googlers', role:'both', kind:'enhance', area:'Product sense', title:'Use Google products critically every day', why:'Many questions are about improving a Google product.',
+    tasks:['Keep a note: product, a problem you noticed, your fix, how you would measure it','Cover Maps, YouTube, Gmail, Pay, Search, Photos, Gemini, Lens'] },
+  { id:'enh-referral', role:'both', kind:'enhance', area:'Profile', title:'Referral and profile consistency', why:'A referral is the biggest boost on selective roles; mismatched profiles look careless.',
+    tasks:['Ask a CEG senior or connection at Google for a referral before applying','Resume, LinkedIn and portfolio titles match (done: Freelance Developer)','Real transcript uploaded; degree name matches it'] },
+];
+
+const ROUNDS = {
+  apm: [
+    ['Application + resume screen', 'Resume, transcript, referral. One page, impact numbers, product evidence.'],
+    ['Recruiter call', 'Background, motivation, logistics. Have a crisp "why PM, why Google" answer.'],
+    ['Phone / video screen(s)', 'Product design, analytics, strategy or estimation. Reported as lighter than onsite; not every candidate gets it.'],
+    ['Onsite / virtual loop', 'Candidate reports vary: about 3–6 interviews covering product design, analytical/metrics, strategy, technical, and behavioral.'],
+    ['Possible extras', 'Some candidates report a take-home and presentation, or a final conversation with a former APM.'],
+    ['Decision and team match', 'Exact process is not public; ask your recruiter what to expect.'],
+  ],
+  fde: [
+    ['Application + resume screen', 'Coding projects, AI/ML work, customer-facing experience.'],
+    ['Recruiter call', 'Background, interest in customer-facing engineering.'],
+    ['Coding', 'DSA and production-style coding. Explain while you code.'],
+    ['System design (agentic / ML)', 'Reported: design an agentic system for an application; cover scalability and privacy; clarify a vague brief first.'],
+    ['Client-facing / ambiguous problem', 'Ask good questions, translate needs into a technical plan, explain trade-offs simply.'],
+    ['Googleyness / behavioral', 'Collaboration, ownership, handling ambiguity. Use STAR stories.'],
+  ],
+};
+
+// q: [question, area, role, kind (reported|practice), hint]
+const Q = [
+  ['How would you improve Google Maps for advertisers?', 'Product sense', 'apm', 'reported', 'Users here are advertisers AND map users. Pick one advertiser segment (local shops?), pains, 3 ideas, prioritise, guardrail: user trust.'],
+  ['Design an app for a 20-floor office building with labs and offices.', 'Product sense', 'apm', 'reported', 'Clarify who (employees, visitors, facilities), pick a segment, top pains (finding rooms, lab booking), MVP, metrics.'],
+  ['An app suddenly gets many negative reviews. What do you do?', 'Metrics', 'apm', 'reported', 'Clarify timing and scope; internal causes first (release, bug, pricing), then external; segment by version/platform/country; fix + communicate.'],
+  ['Design an agentic system for an application; how do you handle scalability and privacy?', 'System design', 'fde', 'reported', 'Clarify the use case first. Agent loop, tools, memory, retrieval, guardrails, eval; scale (queues, caching, rate limits); privacy (PII redaction, access control, data residency).'],
+  ['Interviewer describes a system very abstractly and expects you to clarify requirements.', 'System design', 'fde', 'reported', 'Ask: users, scale, latency, data, constraints, success criteria. Summarise back before designing.'],
+  ['Design a product to help first-generation college students in India find internships.', 'Product sense', 'apm', 'practice', 'Close to JobGenie. Use your real insight but still follow the framework.'],
+  ['Improve YouTube for people learning a new skill.', 'Product sense', 'apm', 'practice', 'Segment (students vs hobbyists), pains (finding a path, tracking progress), MVP, metrics.'],
+  ['Design Google Maps features for auto-rickshaw drivers.', 'Product sense', 'apm', 'practice', 'Driver goals (more rides, less fuel, safety), constraints (cheap phones, data), MVP.'],
+  ['How would you improve Google Pay for small shop owners?', 'Product sense', 'apm', 'practice', 'Segment by shop size; pains (reconciliation, credit, fraud); prioritise; metric: active merchants, repeat payments.'],
+  ['Design a product for elderly people living alone.', 'Product sense', 'apm', 'practice', 'Safety, health reminders, family connection; accessibility; trust.'],
+  ['YouTube watch time dropped 10% last week. Why?', 'Metrics', 'apm', 'practice', 'Is it real (tracking)? Sudden or gradual? Segment platform, region, version, content type; internal vs external causes.'],
+  ['What is the north-star metric for Google Photos? Add input and guardrail metrics.', 'Metrics', 'apm', 'practice', 'North star tied to user value (e.g. memories revisited); inputs; guardrail (storage cost, privacy complaints).'],
+  ['How would you measure the success of Gemini in Gmail?', 'Metrics', 'apm', 'practice', 'Adoption, task success (drafts sent), time saved, retention; guardrails: errors, complaints.'],
+  ['Google Search queries in India rose 5% but ad revenue is flat. Explain.', 'Metrics', 'apm', 'practice', 'Mix shift (non-commercial queries), CPC, ad load, competition; segment.'],
+  ['Design an A/B test for a new "Save for later" button in YouTube.', 'Metrics', 'apm', 'practice', 'Hypothesis, unit, primary + guardrail metrics, duration, novelty effect, decision rule.'],
+  ['How many UPI payments happen in Chennai per day?', 'Estimation', 'apm', 'practice', 'Population → smartphone users → UPI users → payments/day; sanity-check.'],
+  ['Estimate the number of YouTube videos uploaded in India per day.', 'Estimation', 'apm', 'practice', 'Creators × upload frequency, or users × % who upload.'],
+  ['How much storage does Google Photos need per year for India?', 'Estimation', 'apm', 'practice', 'Users × photos/day × size × compression; growth.'],
+  ['Estimate how many auto-rickshaws operate in Bengaluru.', 'Estimation', 'apm', 'practice', 'Trips per day ÷ trips per auto, or population ratio.'],
+  ['Should Google build a food-delivery service in India?', 'Strategy', 'apm', 'practice', 'Market, incumbents (Swiggy, Zomato), Google assets (Maps, Pay), risks; clear recommendation.'],
+  ['How should Google respond to AI chat assistants taking search traffic?', 'Strategy', 'apm', 'practice', 'User needs, Google assets, monetisation risk, phased plan, recommendation.'],
+  ['Pick a Google product you dislike. What would you change and why?', 'Product sense', 'apm', 'practice', 'Be specific, kind and evidence-based; prioritise one change; metric.'],
+  ['What is your favourite product and how would you improve it?', 'Product sense', 'apm', 'practice', 'Classic opener; prepare 2 options (one Google, one not).'],
+  ['Explain how Google Search works to a 10-year-old, then to an engineer.', 'Technical', 'both', 'practice', 'Crawl → index → rank → serve; adjust depth to the audience.'],
+  ['What happens when you type a URL into a browser?', 'Technical', 'both', 'practice', 'DNS, TCP/TLS, HTTP, server, rendering; go as deep as asked.'],
+  ['How does a RAG system answer a question? What can go wrong?', 'Technical', 'both', 'practice', 'Chunk → embed → retrieve → generate; failure: bad retrieval, hallucination, stale data; evaluation.'],
+  ['Why did you use local models in JobGenie instead of a paid API? Trade-offs?', 'Technical', 'both', 'practice', 'Your own project: cost vs quality vs latency vs privacy; what you would do at scale.'],
+  ['Design a URL shortener / a notification service.', 'System design', 'fde', 'practice', 'Requirements, API, data model, scaling, caching, failure handling.'],
+  ['Design a document Q&A assistant for a bank\'s employees.', 'System design', 'fde', 'practice', 'Access control per document, PII, audit logs, eval, latency/cost.'],
+  ['A customer says your AI assistant gives wrong answers. How do you debug it?', 'System design', 'fde', 'practice', 'Reproduce, collect examples, check retrieval vs generation, build an eval set, fix, monitor.'],
+  ['Two Sum / Group Anagrams / Top K Frequent Elements', 'Coding', 'fde', 'practice', 'Hashing patterns; state complexity.'],
+  ['Number of Islands / Course Schedule', 'Coding', 'fde', 'practice', 'BFS/DFS, topological sort.'],
+  ['LRU Cache / Merge Intervals / Longest Substring Without Repeating Characters', 'Coding', 'fde', 'practice', 'Design + sliding window; talk through edge cases.'],
+  ['Tell me about a time you led without formal authority.', 'Behavioral', 'both', 'practice', 'ECEA Study Hub / Book Bank story; STAR with a number.'],
+  ['Tell me about a time you handled an unclear request.', 'Behavioral', 'both', 'practice', 'Deep Aspects client → scoped MVP.'],
+  ['Tell me about a failure and what you learned.', 'Behavioral', 'both', 'practice', 'Honest; focus on what changed after.'],
+  ['Tell me about a disagreement with a teammate.', 'Behavioral', 'both', 'practice', 'NEXUS team; how you listened, decided with data, kept the relationship.'],
+  ['Why product management? Why Google?', 'Behavioral', 'apm', 'practice', 'Client work showed you love the "what and why"; scale and craft at Google.'],
+  ['Why forward deployed engineering?', 'Behavioral', 'fde', 'practice', 'You already build directly with clients; you like turning real problems into working systems.'],
+  ['How do you explain the gap in your grades?', 'Behavioral', 'both', 'practice', 'Short, honest, no excuses; what you did about it and the result.'],
+];
+
+const SOURCES = [
+  ['Exponent: Google APM interview guide', 'https://www.tryexponent.com/guides/google-associate-product-manager-interview'],
+  ['Glassdoor: Google APM interview questions', 'https://www.glassdoor.co.uk/Interview/Google-Associate-Product-Manager-APM-Interview-Questions-EI_IE9079.0,6_KO7,36.htm'],
+  ['Prepfully: Google APM guide', 'https://prepfully.com/interview-guides/google-associate-product-manager'],
+  ['Exponent: Google FDE interview guide', 'https://www.tryexponent.com/guides/google-forward-deployed-engineer-interview'],
+  ['FDE Academy: Google FDE interview questions', 'https://fde.academy/blog/google-forward-deployed-engineer-interview-questions'],
+  ['Interview Query: Google AI engineer', 'https://www.interviewquery.com/guides/google-ai-engineer'],
+];
+
+
+
+
+
+// ================================================================== state
+const KEY = 'g27-prep';
+let S = {};
+try { S = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} };
+const get = (k, d) => (k in S ? S[k] : d);
+const set = (k, v) => { S[k] = v; save(); };
+const ui = Object.assign({ tab: 'dash', role: 'all', areas: [], status: 'all', kind: 'all', q: '', hideDone: false, sort: 'default' }, get('ui', {}));
+if (!Array.isArray(ui.areas)) ui.areas = [];
+const setUi = (k, v) => { ui[k] = v; set('ui', ui); render(); };
+const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const today = () => iso(new Date());
+const goalN = () => get('goal', 5);
+const timerMin = () => get('timer', 3);
+
+const el = (t, c, txt) => { const e = document.createElement(t); if (c) e.className = c; if (txt != null) e.textContent = txt; return e; };
+const NS = 'http://www.w3.org/2000/svg';
+const sv = (t, a = {}) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); return e; };
+const P = {
+  dash: 'M3 12l9-8 9 8M5 10v10h5v-6h4v6h5V10', skills: 'M9 11l3 3 8-8M20 12v7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h11', questions: 'M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z',
+  rounds: 'M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 9a9 9 0 0 1-9 9', sources: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5zM8 7h8M8 11h6', settings: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z',
+  chev: 'M6 9l6 6 6-6', check: 'M20 6L9 17l-5-5', flame: 'M12 22c4 0 7-3 7-7 0-4-3-6-4-9-1 3-3 4-4 4 0-2-1-4-2-6-2 3-4 6-4 10 0 5 3 8 7 8z', target: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12zM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
+  cal: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', bolt: 'M13 2L3 14h9l-1 8 10-12h-9z', search: 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3', menu: 'M4 6h16M4 12h16M4 18h16',
+  play: 'M6 4l14 8-14 8z', left: 'M15 18l-6-6 6-6', right: 'M9 18l6-6-6-6', down: 'M12 5v14M5 12l7 7 7-7', up: 'M12 19V5M5 12l7-7 7 7', trend: 'M3 17l6-6 4 4 8-8M14 7h7v7', star: 'M12 2l3 7 7 .7-5.3 4.8 1.6 7.5L12 18l-6.3 4 1.6-7.5L2 9.7 9 9z',
+};
+const icon = (k, cls = 'i') => { const s = sv('svg', { viewBox: '0 0 24 24', class: cls, 'aria-hidden': 'true' }); s.append(sv('path', { d: P[k] })); return s; };
+
+const qid = (i) => 'q' + i;
+const roleOk = (r) => ui.role === 'all' || r === 'both' || r === ui.role;
+const skillProgress = (s) => { const done = s.tasks.filter((_, i) => get(s.id + ':' + i, false)).length; return [done, s.tasks.length]; };
+const statusOf = (s) => { const [d, n] = skillProgress(s); return d === 0 ? 'todo' : d === n ? 'done' : 'doing'; };
+const conf = (i) => get(qid(i) + ':conf', 0);
+const qStatus = (i) => (conf(i) === 0 ? 'todo' : conf(i) >= 4 ? 'done' : 'doing');
+
+function readiness(role = ui.role) {
+  const ok = (r) => role === 'all' || r === 'both' || r === role;
+  const sk = SKILLS.filter((s) => ok(s.role));
+  const [d, n] = sk.reduce((a, s) => { const [x, y] = skillProgress(s); return [a[0] + x, a[1] + y]; }, [0, 0]);
+  const qs = Q.map((q, i) => [q, i]).filter(([q]) => ok(q[2]));
+  const qc = qs.reduce((a, [, i]) => a + conf(i), 0) / (qs.length * 5 || 1);
+  return Math.round(100 * (0.6 * (n ? d / n : 0) + 0.4 * qc));
+}
+function logAction() {
+  const log = get('log', {}); log[today()] = (log[today()] || 0) + 1; set('log', log);
+  const hist = get('hist', {}); hist[today()] = readiness('all'); set('hist', hist);
+  set('xp', get('xp', 0) + 10);
+  if (log[today()] === goalN()) { confetti(); toast("Daily goal reached. That's how offers are won."); }
+}
+function streak() {
+  const log = get('log', {}); let n = 0; const d = new Date();
+  if (!log[today()]) d.setDate(d.getDate() - 1);
+  for (;;) { const k = iso(d); if (!log[k]) break; n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+const LEVELS = [[0, 'Getting started'], [100, 'Building momentum'], [300, 'Consistent'], [600, 'Interview-ready'], [1000, 'Offer-ready']];
+function level() { const xp = get('xp', 0); let i = 0; while (i + 1 < LEVELS.length && xp >= LEVELS[i + 1][0]) i++; const next = LEVELS[i + 1]; return { xp, name: LEVELS[i][1], idx: i, next, pct: next ? (xp - LEVELS[i][0]) / (next[0] - LEVELS[i][0]) : 1 }; }
+function confetti() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cols = ['#2563eb', '#12b76a', '#f79009', '#7a5af8', '#ee46bc'];
+  for (let i = 0; i < 70; i++) { const c = el('div', 'confetti'); c.style.left = Math.random() * 100 + 'vw'; c.style.background = cols[i % cols.length]; c.style.animationDelay = Math.random() * 0.35 + 's'; document.body.append(c); setTimeout(() => c.remove(), 2200); }
+}
+function toast(msg) { const t = document.getElementById('toast'); t.innerHTML = ''; t.append(icon('check', 'i ic'), el('span', null, msg)); t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 2600); }
+
+// ================================================================== components
+let openPop = null;
+function closePop() { if (openPop) { openPop.close(); openPop = null; } }
+document.addEventListener('pointerdown', (e) => { if (openPop && !openPop.root.contains(e.target)) closePop(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePop(); });
+
+/** Single-select dropdown (listbox) with keyboard support. */
+function Dropdown({ label, options, value, onChange, align }) {
+  const root = el('div', 'dd');
+  const btn = el('button', 'dd-btn'); btn.type = 'button'; btn.setAttribute('aria-haspopup', 'listbox'); btn.setAttribute('aria-expanded', 'false');
+  const cur = options.find((o) => o[0] === value) || options[0];
+  const k = el('span', 'k', label + ':'); const v = el('span', 'v', cur[1]);
+  btn.append(k, v, icon('chev', 'chev'));
+  root.append(btn);
+  let act = Math.max(0, options.findIndex((o) => o[0] === value));
+  const open = () => {
+    closePop();
+    const pop = el('div', 'pop' + (align === 'right' ? ' right' : '')); pop.setAttribute('role', 'listbox'); pop.tabIndex = -1;
+    const items = options.map(([val, lab], i) => {
+      const o = el('div', 'opt'); o.setAttribute('role', 'option'); o.setAttribute('aria-selected', String(val === value));
+      o.append(el('span', null, lab)); if (val === value) o.append(icon('check', 'i tick'));
+      o.onclick = () => { closePop(); onChange(val); };
+      o.onmouseenter = () => { act = i; paint(); };
+      pop.append(o); return o;
+    });
+    const paint = () => items.forEach((o, i) => o.classList.toggle('act', i === act));
+    paint();
+    pop.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') { act = Math.min(items.length - 1, act + 1); paint(); e.preventDefault(); }
+      else if (e.key === 'ArrowUp') { act = Math.max(0, act - 1); paint(); e.preventDefault(); }
+      else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); closePop(); onChange(options[act][0]); }
+      else if (e.key === 'Tab') closePop();
+    });
+    root.append(pop); root.classList.add('open'); btn.setAttribute('aria-expanded', 'true'); pop.focus();
+    openPop = { root, close: () => { pop.remove(); root.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); } };
+  };
+  btn.onclick = () => (root.classList.contains('open') ? closePop() : open());
+  btn.onkeydown = (e) => { if (e.key === 'ArrowDown') { e.preventDefault(); open(); } };
+  return root;
+}
+
+/** Multi-select droplist with checkboxes, select all and clear. */
+function MultiSelect({ label, options, values, onChange }) {
+  const root = el('div', 'dd');
+  const btn = el('button', 'dd-btn'); btn.type = 'button'; btn.setAttribute('aria-haspopup', 'listbox'); btn.setAttribute('aria-expanded', 'false');
+  const txt = values.length === 0 ? 'All' : values.length === 1 ? values[0] : `${values.length} selected`;
+  btn.append(el('span', 'k', label + ':'), el('span', 'v', txt), icon('chev', 'chev'));
+  root.append(btn);
+  btn.onclick = () => {
+    if (root.classList.contains('open')) return closePop();
+    closePop();
+    const sel = new Set(values);
+    const pop = el('div', 'pop'); pop.setAttribute('role', 'listbox'); pop.setAttribute('aria-multiselectable', 'true');
+    for (const o of options) {
+      const row = el('div', 'opt');
+      const c = Checkbox(sel.has(o), o, (on) => { on ? sel.add(o) : sel.delete(o); });
+      row.append(c); pop.append(row);
+    }
+    const f = el('div', 'pop-foot');
+    const clr = el('button', 'btn sm ghost', 'Clear'); clr.type = 'button'; clr.onclick = () => { closePop(); onChange([]); };
+    const ap = el('button', 'btn sm primary', 'Apply'); ap.type = 'button'; ap.onclick = () => { closePop(); onChange([...sel]); };
+    f.append(clr, ap); pop.append(f);
+    root.append(pop); root.classList.add('open'); btn.setAttribute('aria-expanded', 'true');
+    openPop = { root, close: () => { pop.remove(); root.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); } };
+  };
+  return root;
+}
+
+/** Accessible custom checkbox. */
+function Checkbox(checked, label, onChange) {
+  const l = el('label', 'cb');
+  const i = el('input'); i.type = 'checkbox'; i.checked = checked;
+  const box = el('span', 'box'); const s = sv('svg', { viewBox: '0 0 24 24' }); s.append(sv('path', { d: 'M20 6L9 17l-5-5' })); box.append(s);
+  i.onchange = () => onChange(i.checked);
+  l.append(i, box, el('span', 'lab', label));
+  return l;
+}
+
+/** Toggle switch (role=switch). */
+function Toggle(checked, label, onChange) {
+  const b = el('button', 'toggle'); b.type = 'button'; b.setAttribute('role', 'switch'); b.setAttribute('aria-checked', String(checked));
+  b.append(el('span', 'track'), el('span', null, label));
+  b.onclick = () => { const v = b.getAttribute('aria-checked') !== 'true'; b.setAttribute('aria-checked', String(v)); onChange(v); };
+  return b;
+}
+
+/** Segmented radio group. */
+let radioN = 0;
+function Segmented(options, value, onChange, aria) {
+  const g = el('div', 'seg'); g.setAttribute('role', 'radiogroup'); g.setAttribute('aria-label', aria); const name = 'r' + radioN++;
+  for (const [v, l] of options) { const lab = el('label'); const i = el('input'); i.type = 'radio'; i.name = name; i.value = v; i.checked = v === value; i.onchange = () => onChange(v); lab.append(i, el('span', null, l)); g.append(lab); }
+  return g;
+}
+/** Radio cards (for settings). */
+function RadioCards(options, value, onChange, aria) {
+  const g = el('div', 'rcards'); g.setAttribute('role', 'radiogroup'); g.setAttribute('aria-label', aria); const name = 'r' + radioN++;
+  for (const [v, t, sub] of options) { const lab = el('label', 'rcard'); const i = el('input'); i.type = 'radio'; i.name = name; i.checked = v === value; i.onchange = () => onChange(v); lab.append(i, el('b', null, t), el('small', null, sub)); g.append(lab); }
+  return g;
+}
+/** 1–5 rating as a radio group. */
+function Rating(value, onChange) {
+  const g = el('div', 'rating'); g.setAttribute('role', 'radiogroup'); g.setAttribute('aria-label', 'Confidence'); const name = 'r' + radioN++;
+  for (let k = 1; k <= 5; k++) {
+    const lab = el('label', value >= k ? 'lit' : ''); lab.title = ['Blank', 'Shaky', 'Okay', 'Good', 'Would nail it'][k - 1];
+    const i = el('input'); i.type = 'radio'; i.name = name; i.value = k; i.checked = value === k; i.onchange = () => onChange(k);
+    lab.append(i, el('span', null, String(k))); g.append(lab);
+  }
+  return g;
+}
+
+/** Custom date picker: calendar popover, month navigation, keyboard arrows. */
+function DatePicker({ value, onChange, label }) {
+  const root = el('div', 'dd');
+  const btn = el('button', 'dd-btn'); btn.type = 'button'; btn.setAttribute('aria-haspopup', 'dialog');
+  const fmt = (s) => new Date(s + 'T00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  btn.append(icon('cal'), el('span', 'v', value ? fmt(value) : label), icon('chev', 'chev'));
+  root.append(btn);
+  btn.onclick = () => {
+    if (root.classList.contains('open')) return closePop();
+    closePop();
+    const pop = el('div', 'pop cal right'); pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', 'Choose a date');
+    let view = value ? new Date(value + 'T00:00') : new Date(); view.setDate(1);
+    let focusD = value ? new Date(value + 'T00:00') : new Date();
+    const draw = () => {
+      pop.innerHTML = '';
+      const h = el('div', 'cal-h');
+      const prev = el('button', 'btn sm icon ghost'); prev.type = 'button'; prev.append(icon('left')); prev.setAttribute('aria-label', 'Previous month'); prev.onclick = () => { view.setMonth(view.getMonth() - 1); draw(); };
+      const next = el('button', 'btn sm icon ghost'); next.type = 'button'; next.append(icon('right')); next.setAttribute('aria-label', 'Next month'); next.onclick = () => { view.setMonth(view.getMonth() + 1); draw(); };
+      h.append(prev, el('span', null, view.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })), next); pop.append(h);
+      const g = el('div', 'cal-grid'); g.setAttribute('role', 'grid');
+      ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].forEach((d) => g.append(el('div', 'dow', d)));
+      const start = new Date(view); start.setDate(1 - ((view.getDay() + 6) % 7));
+      const t = today();
+      for (let k = 0; k < 42; k++) {
+        const d = new Date(start); d.setDate(start.getDate() + k); const key = iso(d);
+        const b = el('button', null, String(d.getDate())); b.type = 'button';
+        if (d.getMonth() !== view.getMonth()) b.classList.add('out');
+        if (key === t) b.classList.add('today');
+        if (key === value) b.classList.add('sel');
+        if (key < t) b.disabled = true;
+        b.tabIndex = iso(focusD) === key ? 0 : -1;
+        b.onclick = () => { closePop(); onChange(key); };
+        g.append(b);
+      }
+      g.addEventListener('keydown', (e) => {
+        const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key];
+        if (!step) return; e.preventDefault();
+        focusD.setDate(focusD.getDate() + step);
+        if (focusD.getMonth() !== view.getMonth() || focusD.getFullYear() !== view.getFullYear()) { view = new Date(focusD); view.setDate(1); }
+        draw(); pop.querySelector('.cal-grid button[tabindex="0"]')?.focus();
+      });
+      pop.append(g);
+      const f = el('div', 'pop-foot');
+      const clr = el('button', 'btn sm ghost', 'Clear'); clr.type = 'button'; clr.onclick = () => { closePop(); onChange(''); };
+      const td = el('button', 'btn sm', 'Today'); td.type = 'button'; td.onclick = () => { view = new Date(); view.setDate(1); focusD = new Date(); draw(); };
+      f.append(clr, td); pop.append(f);
+    };
+    draw();
+    root.append(pop); root.classList.add('open');
+    (pop.querySelector('.cal-grid button[tabindex="0"]') || pop.querySelector('button')).focus();
+    openPop = { root, close: () => { pop.remove(); root.classList.remove('open'); } };
+  };
+  return root;
+}
+
+// ================================================================== charts
+const tip = document.getElementById('tip');
+function hover(node, text) {
+  const show = (e) => { tip.textContent = text; tip.classList.add('on'); tip.style.left = Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8) + 'px'; tip.style.top = e.clientY - 38 + 'px'; };
+  node.addEventListener('pointermove', show); node.addEventListener('pointerleave', () => tip.classList.remove('on'));
+  node.addEventListener('focus', () => { const r = node.getBoundingClientRect(); show({ clientX: r.left + r.width / 2, clientY: r.top }); }); node.addEventListener('blur', () => tip.classList.remove('on'));
+}
+function dataTable(rows, head) {
+  const det = el('details', 'tbl'); det.append(el('summary', null, 'View as table'));
+  const t = el('table', 'data'); const tr = el('tr'); head.forEach((h) => tr.append(el('th', null, h))); t.append(tr);
+  rows.forEach((r) => { const x = el('tr'); r.forEach((v) => x.append(el('td', null, String(v)))); t.append(x); });
+  det.append(t); return det;
+}
+const CW = () => { const side = innerWidth > 960 ? 256 : 0; const pad = innerWidth > 960 ? 64 : 32; const content = Math.min(1240, innerWidth - side) - pad; return Math.max(250, innerWidth > 1100 ? (content - 16) / 2 - 38 : content - 38); };
+const svgBox = (W, H, label) => sv('svg', { viewBox: `0 0 ${W} ${H}`, width: W, style: 'max-width:100%;height:auto', role: 'img', 'aria-label': label });
+function hbar(rows) {
+  const W = CW(), rowH = 30, lw = Math.min(130, W * 0.36), H = rows.length * rowH + 4;
+  const s = svgBox(W, H, 'Skills by area');
+  rows.forEach(([label, pct, detail], i) => {
+    const y = i * rowH + 4, bw = W - lw - 48, w = (bw * pct) / 100;
+    const tx = sv('text', { x: lw - 10, y: y + 14, 'text-anchor': 'end' }); tx.textContent = label; s.append(tx);
+    s.append(sv('rect', { x: lw, y: y + 3, width: bw, height: 14, rx: 4, fill: 'var(--track)' }));
+    if (pct > 0) s.append(sv('rect', { x: lw, y: y + 3, width: Math.max(w, 8), height: 14, rx: 4, fill: 'var(--series)' }));
+    const v = sv('text', { x: lw + bw + 8, y: y + 14 }); v.textContent = pct + '%'; v.style.fill = 'var(--text)'; v.style.fontWeight = '700'; s.append(v);
+    const hit = sv('rect', { x: 0, y, width: W, height: rowH, fill: 'transparent', tabindex: 0 }); s.append(hit); hover(hit, `${label}: ${pct}% (${detail})`);
+  });
+  return s;
+}
+function vbar(rows) {
+  const W = CW(), H = 180, pad = 26, max = Math.max(1, ...rows.map((r) => r[1]));
+  const s = svgBox(W, H, 'Answer confidence');
+  s.append(sv('line', { x1: 0, x2: W, y1: H - pad, y2: H - pad, stroke: 'var(--border)' }));
+  const bw = (W - 10) / rows.length;
+  rows.forEach(([label, n], i) => {
+    const x = 5 + i * bw + bw * 0.22, w = bw * 0.56, h = ((H - pad - 24) * n) / max;
+    if (n) s.append(sv('path', { d: `M${x},${H - pad} v${-(h - 4)} q0,-4 4,-4 h${w - 8} q4,0 4,4 v${h - 4} z`, fill: 'var(--series)' }));
+    const t = sv('text', { x: x + w / 2, y: H - 8, 'text-anchor': 'middle' }); t.textContent = label; s.append(t);
+    if (n) { const v = sv('text', { x: x + w / 2, y: H - pad - h - 7, 'text-anchor': 'middle' }); v.textContent = n; v.style.fill = 'var(--text)'; v.style.fontWeight = '700'; s.append(v); }
+    const hit = sv('rect', { x: 5 + i * bw, y: 0, width: bw, height: H - pad, fill: 'transparent', tabindex: 0 }); s.append(hit); hover(hit, `Confidence ${label}: ${n} question${n === 1 ? '' : 's'}`);
+  });
+  return s;
+}
+function heatmap() {
+  const cell = 13, gap = 3, left = 24, top = 18, log = get('log', {}); const W0 = CW(); const weeks = Math.min(30, Math.floor((W0 - left) / (cell + gap)) - 1);
+  const end = new Date(); const start = new Date(); start.setDate(end.getDate() - weeks * 7 - ((end.getDay() + 6) % 7));
+  const W = left + (weeks + 1) * (cell + gap), H = top + 7 * (cell + gap);
+  const s = svgBox(W, H, 'Daily activity');
+  ['Mon', 'Wed', 'Fri'].forEach((d, i) => { const t = sv('text', { x: 0, y: top + i * 2 * (cell + gap) + 10 }); t.textContent = d; t.style.fontSize = '10px'; s.append(t); });
+  const step = (n) => (n === 0 ? 'var(--h0)' : n < 2 ? 'var(--h1)' : n < 4 ? 'var(--h2)' : n < 7 ? 'var(--h3)' : 'var(--h4)');
+  const d = new Date(start);
+  for (let w = 0; w <= weeks; w++) for (let k = 0; k < 7; k++) {
+    if (d > end) break;
+    const key = iso(d), n = log[key] || 0;
+    const r = sv('rect', { x: left + w * (cell + gap), y: top + k * (cell + gap), width: cell, height: cell, rx: 3, fill: step(n), tabindex: 0 });
+    hover(r, `${d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}: ${n} action${n === 1 ? '' : 's'}`); s.append(r);
+    if (d.getDate() <= 7 && k === 0) { const t = sv('text', { x: left + w * (cell + gap), y: 11 }); t.textContent = d.toLocaleDateString(undefined, { month: 'short' }); t.style.fontSize = '10px'; s.append(t); }
+    d.setDate(d.getDate() + 1);
+  }
+  return s;
+}
+function trend() {
+  const pts = Object.entries(get('hist', {})).sort();
+  const W = CW(), H = 180, l = 30, b = 22, t = 10;
+  const s = svgBox(W, H, 'Readiness over time');
+  [0, 50, 100].forEach((v) => { const y = t + (H - b - t) * (1 - v / 100); s.append(sv('line', { x1: l, x2: W - 40, y1: y, y2: y, stroke: 'var(--border)', 'stroke-dasharray': v ? '3 4' : '' })); const tx = sv('text', { x: l - 8, y: y + 4, 'text-anchor': 'end' }); tx.textContent = v; s.append(tx); });
+  if (pts.length < 2) { const tx = sv('text', { x: W / 2, y: H / 2, 'text-anchor': 'middle' }); tx.textContent = pts.length ? 'Your trend appears after your second day' : 'Complete an action to start your trend'; s.append(tx); return s; }
+  const x = (i) => l + ((W - 40 - l) * i) / (pts.length - 1), y = (v) => t + (H - b - t) * (1 - v / 100);
+  const line = pts.map(([, v], i) => `${i ? 'L' : 'M'}${x(i)},${y(v)}`).join('');
+  s.append(sv('path', { d: line + `L${x(pts.length - 1)},${y(0)}L${x(0)},${y(0)}Z`, fill: 'var(--series)', opacity: 0.08 }));
+  s.append(sv('path', { d: line, fill: 'none', stroke: 'var(--series)', 'stroke-width': 2, 'stroke-linejoin': 'round' }));
+  const lv = pts[pts.length - 1][1];
+  s.append(sv('circle', { cx: x(pts.length - 1), cy: y(lv), r: 4, fill: 'var(--series)', stroke: '#fff', 'stroke-width': 2 }));
+  const lab = sv('text', { x: x(pts.length - 1) + 8, y: y(lv) + 4 }); lab.textContent = lv + '%'; lab.style.fill = 'var(--text)'; lab.style.fontWeight = '700'; s.append(lab);
+  [0, pts.length - 1].forEach((i) => { const tx = sv('text', { x: x(i), y: H - 5, 'text-anchor': i ? 'end' : 'start' }); tx.textContent = new Date(pts[i][0] + 'T00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short' }); s.append(tx); });
+  const cross = sv('line', { y1: t, y2: H - b, stroke: 'var(--faint)', 'stroke-dasharray': '3 3', opacity: 0 }); s.append(cross);
+  const dot = sv('circle', { r: 5, fill: 'var(--series)', stroke: '#fff', 'stroke-width': 2, opacity: 0 }); s.append(dot);
+  const hit = sv('rect', { x: l, y: 0, width: W - l, height: H, fill: 'transparent' }); s.append(hit);
+  hit.addEventListener('pointermove', (e) => {
+    const r = s.getBoundingClientRect(); const sx = ((e.clientX - r.left) / r.width) * W;
+    const i = Math.max(0, Math.min(pts.length - 1, Math.round(((sx - l) / (W - 40 - l)) * (pts.length - 1))));
+    cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.setAttribute('opacity', 1); dot.setAttribute('cx', x(i)); dot.setAttribute('cy', y(pts[i][1])); dot.setAttribute('opacity', 1);
+    tip.textContent = `${new Date(pts[i][0] + 'T00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}: ${pts[i][1]}% ready`; tip.classList.add('on'); tip.style.left = Math.min(e.clientX + 12, innerWidth - 180) + 'px'; tip.style.top = e.clientY - 38 + 'px';
+  });
+  hit.addEventListener('pointerleave', () => { cross.setAttribute('opacity', 0); dot.setAttribute('opacity', 0); tip.classList.remove('on'); });
+  return s;
+}
+function ring(v, max, size = 92) {
+  const r = 38, c = 2 * Math.PI * r, p = Math.min(1, v / max);
+  const s = sv('svg', { viewBox: '0 0 100 100', width: size, height: size, role: 'img', 'aria-label': `${v} of ${max}` });
+  s.append(sv('circle', { cx: 50, cy: 50, r, fill: 'none', stroke: 'var(--track)', 'stroke-width': 9 }));
+  s.append(sv('circle', { cx: 50, cy: 50, r, fill: 'none', stroke: p >= 1 ? 'var(--ok)' : 'var(--brand)', 'stroke-width': 9, 'stroke-linecap': 'round', 'stroke-dasharray': `${c * p} ${c}`, transform: 'rotate(-90 50 50)' }));
+  const t = sv('text', { x: 50, y: 56, 'text-anchor': 'middle' }); t.textContent = `${v}/${max}`; t.style.fontSize = '19px'; t.style.fontWeight = '800'; t.style.fill = 'var(--text)'; s.append(t);
+  return s;
+}
+
+// ================================================================== chrome
+const TABS = [['dash', 'Overview'], ['skills', 'Skills'], ['questions', 'Questions'], ['rounds', 'Interview rounds'], ['sources', 'Sources'], ['settings', 'Settings']];
+const TITLES = { dash: ['Overview', 'Your preparation at a glance'], skills: ['Skills', 'Close the gaps and strengthen what you have'], questions: ['Question bank', 'Practise out loud, then rate yourself'], rounds: ['Interview rounds', 'Track each stage as you move through it'], sources: ['Sources', 'Where the reported questions come from'], settings: ['Settings', 'Goals, timer and your data'] };
+function sidebar() {
+  const sb = document.getElementById('sidebar'); sb.innerHTML = '';
+  const br = el('div', 'brand'); const lg = el('div', 'logo'); lg.append(icon('check')); const bt = el('div'); bt.append(el('b', null, 'Prep Tracker'), el('small', null, 'Google APM and FDE 2027')); br.append(lg, bt); sb.append(br);
+  const counts = { skills: SKILLS.filter((s) => roleOk(s.role) && statusOf(s) !== 'done').length, questions: Q.filter((q, i) => roleOk(q[2]) && conf(i) < 4).length };
+  TABS.forEach(([k, l], i) => {
+    if (i === 4) sb.append(el('div', 'navgroup', 'More'));
+    const b = el('button', 'nav' + (ui.tab === k ? ' on' : '')); b.type = 'button'; if (ui.tab === k) b.setAttribute('aria-current', 'page');
+    b.append(icon(k === 'dash' ? 'dash' : k), el('span', null, l)); if (counts[k]) b.append(el('span', 'count', String(counts[k])));
+    b.onclick = () => { setUi('tab', k); scrollTo({ top: 0 }); document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('on'); };
+    sb.append(b);
+  });
+  const foot = el('div', 'side-foot');
+  const L = level(); const lv = el('div', 'level');
+  const lt = el('div', 'lv-top'); lt.append(el('span', null, 'Level ' + (L.idx + 1)), el('span', null, `${L.xp} XP`)); lv.append(lt, el('b', null, L.name));
+  const pg = el('div', 'progress ok'); pg.style.marginTop = '8px'; const pi = el('i'); pi.style.width = Math.round(L.pct * 100) + '%'; pg.append(pi); lv.append(pg);
+  if (L.next) lv.append(el('div', 'muted', `${L.next[0] - L.xp} XP to ${L.next[1]}`)); lv.lastChild.style.fontSize = '12px';
+  foot.append(lv);
+  const ib = el('button', 'btn primary', 'Install app'); ib.type = 'button'; ib.id = 'install'; ib.hidden = !deferredInstall; ib.onclick = install; foot.append(ib);
+  sb.append(foot);
+}
+function topbar() {
+  const tb = document.getElementById('topbar'); tb.innerHTML = '';
+  const mb = el('button', 'btn icon ghost menu-btn'); mb.type = 'button'; mb.setAttribute('aria-label', 'Open menu'); mb.append(icon('menu'));
+  mb.onclick = () => { document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('on'); };
+  const g = el('div', 'grow'); const [t, sub] = TITLES[ui.tab]; g.append(el('h1', null, t), el('p', null, sub));
+  tb.append(mb, g);
+  tb.append(DatePicker({ value: get('target', ''), label: 'Set interview date', onChange: (v) => { set('target', v); toast(v ? 'Interview date saved.' : 'Interview date cleared.'); render(); } }));
+}
+document.getElementById('overlay').onclick = () => { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('on'); };
+function toolbar() {
+  const t = document.getElementById('toolbar'); t.innerHTML = '';
+  if (ui.tab === 'sources' || ui.tab === 'settings') return;
+  t.append(Segmented([['all', 'Both roles'], ['apm', 'APM'], ['fde', 'FDE Intern']], ui.role, (v) => setUi('role', v), 'Role'));
+  if (ui.tab !== 'skills' && ui.tab !== 'questions') return;
+  const areas = [...new Set(ui.tab === 'skills' ? SKILLS.map((s) => s.area) : Q.map((q) => q[1]))].sort();
+  t.append(MultiSelect({ label: 'Area', options: areas, values: ui.areas.filter((a) => areas.includes(a)), onChange: (v) => setUi('areas', v) }));
+  t.append(Dropdown({ label: 'Status', value: ui.status, options: [['all', 'Any'], ['todo', 'Not started'], ['doing', 'In progress'], ['done', ui.tab === 'skills' ? 'Done' : 'Confident']], onChange: (v) => setUi('status', v) }));
+  if (ui.tab === 'skills') t.append(Dropdown({ label: 'Type', value: ui.kind, options: [['all', 'All'], ['risk', 'Critical risks'], ['gap', 'Missing skills'], ['enhance', 'Strengthen']], onChange: (v) => setUi('kind', v) }));
+  else t.append(Dropdown({ label: 'Source', value: ui.kind, options: [['all', 'All'], ['reported', 'Reported'], ['practice', 'Practice']], onChange: (v) => setUi('kind', v) }));
+  t.append(Toggle(ui.hideDone, 'Hide completed', (v) => setUi('hideDone', v)));
+  const sw = el('div', 'search'); sw.append(icon('search'));
+  const si = el('input', 'input'); si.type = 'search'; si.placeholder = ui.tab === 'skills' ? 'Search skills and tasks' : 'Search questions'; si.value = ui.q; si.setAttribute('aria-label', 'Search');
+  si.oninput = () => { ui.q = si.value; set('ui', ui); body(); }; sw.append(si); t.append(sw);
+}
+
+// ================================================================== pages
+const match = (txt) => !ui.q || txt.toLowerCase().includes(ui.q.toLowerCase());
+const areaOk = (a) => !ui.areas.length || ui.areas.includes(a);
+function panel(title, sub, extra) { const p = el('section', 'panel'); const h = el('div', 'panel-h'); const g = el('div', 'grow'); g.append(el('h2', null, title)); if (sub) g.append(el('p', null, sub)); h.append(g); if (extra) h.append(extra); const b = el('div', 'panel-b'); p.append(h, b); return [p, b]; }
+
+/** The single most useful next step: unfinished critical risks first, then the weakest area. */
+function nextAction() {
+  const sk = SKILLS.filter((s) => roleOk(s.role));
+  const order = [...sk.filter((s) => s.kind === 'risk'), ...sk.filter((s) => s.kind !== 'risk').sort((a, b) => skillProgress(a)[0] / skillProgress(a)[1] - skillProgress(b)[0] / skillProgress(b)[1])];
+  for (const s of order) { const k = s.tasks.findIndex((_, i) => !get(s.id + ':' + i, false)); if (k >= 0) return { s, k }; }
+  return null;
+}
+
+function dash(app) {
+  const qs = Q.map((q, i) => [q, i]).filter(([q]) => roleOk(q[2]));
+  const sk = SKILLS.filter((s) => roleOk(s.role));
+  const st = streak(), n = get('log', {})[today()] || 0, G = goalN();
+  const hist = get('hist', {}); const wk = new Date(); wk.setDate(wk.getDate() - 7);
+  const past = Object.entries(hist).filter(([d]) => d <= iso(wk)).sort().pop();
+  const r = readiness(); const delta = past ? r - past[1] : null;
+
+  const kp = el('div', 'kpis');
+  const kpi = (ic, cls, label, val, note) => { const c = el('div', 'panel kpi'); const l = el('div', 'lab'); const i = el('span', 'ic ' + cls); i.append(icon(ic)); l.append(i, el('span', null, label)); c.append(l); const v = el('div', 'val'); v.append(...val); c.append(v, note); kp.append(c); };
+  const n1 = el('div', 'note'); if (delta != null) { const b = el('b', delta < 0 ? 'down' : null, `${delta >= 0 ? '+' : ''}${delta} pts`); n1.append(b, document.createTextNode(' vs last week')); } else n1.textContent = 'Skills 60%, answer confidence 40%';
+  const p1 = el('div', 'progress'); p1.style.marginTop = '10px'; const i1 = el('i'); i1.style.width = r + '%'; p1.append(i1); n1.append(p1);
+  kpi('trend', '', 'Readiness', [document.createTextNode(r + '%')], n1);
+  kpi('flame', 'warn', 'Practice streak', [document.createTextNode(String(st)), el('small', null, st === 1 ? ' day' : ' days')], el('div', 'note', n > 0 ? 'Streak safe today. Come back tomorrow to make it ' + (st + 1) + '.' : st ? `Practise today to keep your ${st}-day streak.` : 'Complete one action today to start a streak.'));
+  const conf4 = qs.filter(([, i]) => conf(i) >= 4).length;
+  kpi('star', 'ok', 'Confident answers', [document.createTextNode(String(conf4)), el('small', null, ` / ${qs.length}`)], el('div', 'note', `${qs.length - conf4} left to master`));
+  const target = get('target', ''); const days = target ? Math.ceil((new Date(target + 'T00:00') - new Date(today() + 'T00:00')) / 864e5) : null;
+  kpi('cal', '', 'Until interview', [document.createTextNode(days == null ? '—' : String(days)), el('small', null, days == null ? '' : ' days')], el('div', 'note', days == null ? 'Set the date from the top bar.' : `About ${Math.max(1, Math.round((qs.length - conf4) / Math.max(1, days / 7)))} questions a week to finish in time.`));
+  app.append(kp);
+
+  const cols = el('div', 'cols');
+  const [p1p, b1] = panel('Focus for today', 'One next step, then three questions to practise out loud.');
+  const na = nextAction();
+  if (na) {
+    const box = el('div', 'nba'); const ic = el('div', 'ic'); ic.append(icon('bolt'));
+    const g = el('div', 'grow'); g.append(el('div', 'muted', 'Next best action'), el('div', 't', na.s.tasks[na.k]), el('div', 'muted', na.s.title));
+    const done = el('button', 'btn primary sm', 'Mark done'); done.type = 'button';
+    done.onclick = () => { set(na.s.id + ':' + na.k, true); logAction(); toast('Done: ' + na.s.tasks[na.k]); if (statusOf(na.s) === 'done') confetti(); render(); };
+    box.append(ic, g, done); b1.append(box);
+  }
+  const seed = Number(today().replace(/-/g, ''));
+  const pool = qs.filter(([, i]) => conf(i) < 4).sort((a, b) => conf(a[1]) - conf(b[1]) || ((a[1] * 7919 + seed) % 97) - ((b[1] * 7919 + seed) % 97)).slice(0, 3);
+  const list = el('div'); list.style.marginTop = '8px';
+  for (const [q, i] of pool) {
+    const row = el('div', 'qrow'); const g = el('div', 'grow'); g.append(el('div', 't', q[0]));
+    const meta = el('div', 'meta'); meta.append(el('span', 'badge', q[1]), conf(i) ? el('span', 'badge brand', 'Last rated ' + conf(i)) : el('span', 'badge', 'Not practised')); g.append(meta);
+    const b = el('button', 'btn sm'); b.type = 'button'; b.append(icon('play'), el('span', null, 'Practise')); b.onclick = () => practise(q, i);
+    row.append(g, b); list.append(row);
+  }
+  if (!pool.length) list.append(el('div', 'empty', 'Every question is rated 4 or 5. Excellent.'));
+  b1.append(list); cols.append(p1p);
+
+  const [p2p, b2] = panel("Today's goal", `${G} actions a day keeps you on track.`);
+  const gl = el('div', 'goal'); gl.append(ring(n, G));
+  const gt = el('div'); gt.append(el('div', 't', n >= G ? 'Goal complete' : `${G - n} more to go`), el('div', 'muted', n >= G ? 'Everything extra today is a head start on tomorrow.' : n ? `You're ${Math.round((100 * n) / G)}% of the way there.` : 'Tick a task or rate an answer to begin.'));
+  gl.append(gt); b2.append(gl);
+  const L = level(); const miles = el('div', 'miles');
+  LEVELS.forEach(([xp, name], k) => { const m = el('div', 'mile' + (k <= L.idx ? ' done' : k === L.idx + 1 ? ' next' : '')); const c = el('span', 'm'); if (k <= L.idx) c.append(icon('check')); else c.textContent = String(k + 1); m.append(c, el('span', null, name), el('span', 'r', xp + ' XP')); miles.append(m); });
+  b2.append(el('div', 'lbl', 'Milestones'), miles); cols.append(p2p);
+  app.append(cols);
+
+  const c2 = el('div', 'cols2');
+  const chart = (title, sub, node, table) => { const [p, b] = panel(title, sub); b.append(node); if (table) b.append(table); c2.append(p); };
+  const areaRows = [...new Set(sk.map((s) => s.area))].map((a) => { const l2 = sk.filter((s) => s.area === a); const [d, n2] = l2.reduce((x, s) => { const [p, q2] = skillProgress(s); return [x[0] + p, x[1] + q2]; }, [0, 0]); return [a, n2 ? Math.round((100 * d) / n2) : 0, `${d}/${n2} tasks`]; }).sort((a, b) => b[1] - a[1]);
+  chart('Skills by area', 'Share of tasks completed', hbar(areaRows), dataTable(areaRows.map((r2) => [r2[0], r2[1] + '%', r2[2]]), ['Area', 'Done', 'Tasks']));
+  const dist = [['None', 0], ['1', 1], ['2', 2], ['3', 3], ['4', 4], ['5', 5]].map(([l, v]) => [l, qs.filter(([, i]) => conf(i) === v).length]);
+  chart('Answer confidence', 'Questions at each confidence level', vbar(dist), dataTable(dist, ['Confidence', 'Questions']));
+  chart('Readiness over time', 'Recorded each day you practise', trend());
+  chart('Daily activity', 'Darker cells mean more practice', heatmap());
+  app.append(c2);
+}
+
+function skills(app) {
+  const list = SKILLS.filter((s) => roleOk(s.role) && areaOk(s.area) && (ui.kind === 'all' || s.kind === ui.kind) && (ui.status === 'all' || statusOf(s) === ui.status) && !(ui.hideDone && statusOf(s) === 'done') && match(s.title + s.why + s.tasks.join(' ')));
+  if (!list.length) { const e = el('div', 'panel empty'); e.append(el('b', null, 'No skills match these filters'), el('span', null, 'Clear a filter or the search to see more.')); return app.append(e); }
+  const openSet = new Set(get('open', []));
+  for (const s of list) {
+    const [d, n] = skillProgress(s);
+    const it = el('section', 'panel item' + (openSet.has(s.id) ? ' open' : ''));
+    const h = el('button', 'item-h'); h.type = 'button'; h.setAttribute('aria-expanded', String(openSet.has(s.id)));
+    const g = el('div', 'grow'); g.append(el('div', 't', s.title), el('div', 'why', s.why));
+    const meta = el('div', 'meta');
+    meta.append(s.kind === 'risk' ? el('span', 'badge bad', 'Critical risk') : s.kind === 'gap' ? el('span', 'badge warn', 'Missing skill') : el('span', 'badge brand', 'Strengthen'), el('span', 'badge', s.area), el('span', 'badge', s.role === 'both' ? 'APM and FDE' : s.role.toUpperCase()));
+    if (d === n) meta.append(el('span', 'badge ok', 'Complete')); g.append(meta);
+    const pg = el('div', 'pg'); pg.append(el('small', null, `${d} of ${n}`)); const bar = el('div', 'progress' + (d === n ? ' ok' : '')); const bi = el('i'); bi.style.width = (100 * d) / n + '%'; bar.append(bi); pg.append(bar);
+    h.append(g, pg, icon('chev', 'chev'));
+    h.onclick = () => { const o = it.classList.toggle('open'); h.setAttribute('aria-expanded', String(o)); o ? openSet.add(s.id) : openSet.delete(s.id); set('open', [...openSet]); };
+    const b = el('div', 'item-b'); const tasks = el('div', 'tasks');
+    s.tasks.forEach((t, k) => tasks.append(Checkbox(get(s.id + ':' + k, false), t, (on) => { set(s.id + ':' + k, on); if (on) { logAction(); if (statusOf(s) === 'done') { confetti(); toast('Skill complete: ' + s.title); } else toast('Task done. +10 XP'); } setTimeout(render, 260); })));
+    b.append(tasks, el('div', 'lbl', 'Notes'), notes(s.id));
+    it.append(h, b); app.append(it);
+  }
+}
+function notes(id) { const ta = el('textarea', 'notes'); ta.value = get(id + ':notes', ''); ta.placeholder = 'Links, answer outline, what to revisit'; ta.oninput = () => set(id + ':notes', ta.value); return ta; }
+
+function questions(app) {
+  const list = Q.map((q, i) => [q, i]).filter(([q, i]) => roleOk(q[2]) && areaOk(q[1]) && (ui.kind === 'all' || q[3] === ui.kind) && (ui.status === 'all' || qStatus(i) === ui.status) && !(ui.hideDone && qStatus(i) === 'done') && match(q[0] + q[4]));
+  const wrap = el('section', 'panel');
+  const head = el('div', 'qt-head'); head.append(el('div', null, `${list.length} question${list.length === 1 ? '' : 's'}`), el('div', null, 'Confidence'), el('div', null, '')); wrap.append(head);
+  if (!list.length) { const e = el('div', 'empty'); e.append(el('b', null, 'No questions match these filters'), el('span', null, 'Clear a filter or the search to see more.')); wrap.append(e); }
+  for (const [q, i] of list) {
+    const row = el('div', 'qt-row');
+    const g = el('div'); g.append(el('div', 't', q[0])); g.lastChild.style.fontWeight = '600';
+    const meta = el('div', 'meta'); meta.append(q[3] === 'reported' ? el('span', 'badge ok', 'Reported') : el('span', 'badge', 'Practice'), el('span', 'badge', q[1]), el('span', 'badge', q[2] === 'both' ? 'APM and FDE' : q[2].toUpperCase()));
+    const times = get(qid(i) + ':times', 0); if (times) meta.append(el('span', 'badge brand', `Practised ${times}×`));
+    g.append(meta);
+    const rt = Rating(conf(i), (k) => { rate(i, k); render(); });
+    const b = el('button', 'btn sm'); b.type = 'button'; b.append(icon('play'), el('span', null, 'Practise')); b.onclick = () => practise(q, i);
+    const more = el('details', 'qt-more'); more.append(el('summary', null, 'Hint and notes'), el('div', 'muted', q[4]), el('div', 'lbl', 'Notes'), notes(qid(i)));
+    row.append(g, rt, b, more); wrap.append(row);
+  }
+  app.append(wrap);
+}
+function rate(i, k) {
+  const was = conf(i); set(qid(i) + ':conf', k); set(qid(i) + ':times', get(qid(i) + ':times', 0) + 1); logAction();
+  if (k === 5 && was < 5) confetti();
+  toast(k >= 4 ? 'Strong answer. +10 XP' : k === 3 ? 'Getting there. +10 XP' : 'Logged. Try it again tomorrow. +10 XP');
+}
+function practise(q, i) {
+  const long = q[1] === 'Coding' || q[1] === 'System design';
+  let secs = (long ? Math.max(10, timerMin()) : timerMin()) * 60;
+  const m = el('div', 'modal'); m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true');
+  const box = el('div', 'box'); m.append(box);
+  const top = el('div'); top.style.cssText = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap'; top.append(el('span', 'badge brand', q[1]), q[3] === 'reported' ? el('span', 'badge ok', 'Reported') : el('span', 'badge', 'Practice')); box.append(top);
+  box.append(el('h3', null, q[0]));
+  const lengthRow = el('div'); lengthRow.style.cssText = 'display:flex;justify-content:center;margin-bottom:6px';
+  const clock = el('div', 'clock'); const R = 68, C = 2 * Math.PI * R;
+  const s = sv('svg', { viewBox: '0 0 160 160' }); s.append(sv('circle', { cx: 80, cy: 80, r: R, fill: 'none', stroke: 'var(--track)', 'stroke-width': 10 }));
+  const arc = sv('circle', { cx: 80, cy: 80, r: R, fill: 'none', stroke: 'var(--brand)', 'stroke-width': 10, 'stroke-linecap': 'round', 'stroke-dasharray': `${C} ${C}` }); s.append(arc);
+  const num = el('div', 'num'); clock.append(s, num);
+  let total = secs, iv = null;
+  const tick = () => { num.textContent = secs > 0 ? `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}` : 'Time'; arc.setAttribute('stroke-dashoffset', String(C * (1 - secs / total))); arc.setAttribute('stroke', secs <= 30 ? 'var(--warn)' : 'var(--brand)'); if (secs <= 0) clearInterval(iv); secs--; };
+  lengthRow.append(Segmented(long ? [[10, '10 min'], [15, '15 min'], [20, '20 min']] : [[2, '2 min'], [3, '3 min'], [5, '5 min']], total / 60, (v) => { clearInterval(iv); total = secs = v * 60; iv = setInterval(tick, 1000); tick(); }, 'Timer length'));
+  box.append(lengthRow, clock);
+  const hint = el('details'); hint.append(el('summary', 'muted', 'Show hint'), el('div', 'muted', q[4])); hint.firstChild.style.cssText = 'cursor:pointer;color:var(--brand-600);font-weight:600;font-size:13px'; box.append(hint);
+  box.append(el('div', 'lbl', 'How confident do you feel now?'));
+  box.append(Rating(conf(i), (k) => { rate(i, k); close(); }));
+  const f = el('div'); f.style.cssText = 'display:flex;justify-content:flex-end;margin-top:16px'; const x = el('button', 'btn', 'Close'); x.type = 'button'; x.onclick = () => close(); f.append(x); box.append(f);
+  document.body.append(m); iv = setInterval(tick, 1000); tick(); x.focus();
+  const esc = (e) => e.key === 'Escape' && close(); addEventListener('keydown', esc);
+  m.addEventListener('pointerdown', (e) => { if (e.target === m) close(); });
+  function close() { clearInterval(iv); removeEventListener('keydown', esc); m.remove(); render(); }
+}
+
+function rounds(app) {
+  const grid = el('div', 'cols2');
+  for (const r of ['apm', 'fde']) {
+    if (ui.role !== 'all' && ui.role !== r) continue;
+    const states = ROUNDS[r].map((_, k) => get(`round:${r}:${k}`, ''));
+    const passed = states.filter((s) => s === 'passed').length;
+    const [p, b] = panel(r === 'apm' ? 'Associate Product Manager 2027' : 'Forward Deployed Engineer Intern 2027', `${passed} of ${ROUNDS[r].length} stages passed`);
+    const cur = states.findIndex((s) => s !== 'passed');
+    const steps = el('div', 'steps');
+    ROUNDS[r].forEach(([name, what], k) => {
+      const st = states[k];
+      const row = el('div', 'step' + (st === 'passed' ? ' passed' : st === 'no' ? ' no' : k === cur ? ' cur' : ''));
+      const n = el('div', 'n'); if (st === 'passed') n.append(icon('check')); else n.textContent = String(k + 1);
+      const m = el('div'); const top = el('div', 'top'); top.append(el('div', 't', name));
+      top.append(Dropdown({ label: 'Status', align: 'right', value: st, options: [['', 'Not reached'], ['prep', 'Preparing'], ['sched', 'Scheduled'], ['passed', 'Passed'], ['no', 'Not selected']], onChange: (v) => { set(`round:${r}:${k}`, v); logAction(); if (v === 'passed') { confetti(); toast('Stage passed. On to the next one.'); } render(); } }));
+      m.append(top, el('div', 'd', what)); row.append(n, m); steps.append(row);
+    });
+    b.append(steps, el('p', 'muted', 'Assembled from candidate reports; confirm the real process with your recruiter.')); b.lastChild.style.fontSize = '12.5px';
+    grid.append(p);
+  }
+  app.append(grid);
+}
+function sources(app) {
+  const [p, b] = panel('Where the reported questions and rounds come from', 'Third-party candidate reports and prep guides, not official Google material.');
+  const ul = el('ul'); ul.style.cssText = 'margin:0;padding-left:18px;line-height:2';
+  for (const [l, u] of SOURCES) { const li = el('li'); const a = el('a', null, l); a.href = u; a.target = '_blank'; a.rel = 'noopener'; a.style.color = 'var(--brand-600)'; li.append(a); ul.append(li); }
+  b.append(ul); app.append(p);
+}
+function settings(app) {
+  const grid = el('div', 'cols2');
+  const [p1, b1] = panel('Daily goal', 'How many actions count as a full day.');
+  b1.append(RadioCards([[3, 'Light', '3 actions a day'], [5, 'Steady', '5 actions a day'], [8, 'Intense', '8 actions a day']], goalN(), (v) => { set('goal', v); toast('Daily goal set to ' + v + '.'); render(); }, 'Daily goal'));
+  grid.append(p1);
+  const [p2, b2] = panel('Default answer timer', 'Coding and system design always get at least 10 minutes.');
+  b2.append(RadioCards([[2, 'Quick', '2 minutes'], [3, 'Standard', '3 minutes'], [5, 'Deep', '5 minutes']], timerMin(), (v) => { set('timer', v); toast('Timer set to ' + v + ' minutes.'); }, 'Timer length'));
+  grid.append(p2);
+  const [p3, b3] = panel('Your data', 'Progress is saved on this device. Export it to back up or move to another device.');
+  const row = el('div'); row.style.cssText = 'display:flex;gap:10px;flex-wrap:wrap';
+  const ex = el('button', 'btn', 'Export progress'); ex.type = 'button'; ex.onclick = () => { const a = el('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(S, null, 1)], { type: 'application/json' })); a.download = 'prep-progress-' + today() + '.json'; a.click(); toast('Progress exported.'); };
+  const im = el('button', 'btn', 'Import progress'); im.type = 'button'; im.onclick = () => { const f = el('input'); f.type = 'file'; f.accept = '.json'; f.onchange = async () => { try { S = JSON.parse(await f.files[0].text()); save(); location.reload(); } catch { toast('That file is not a progress export.'); } }; f.click(); };
+  row.append(ex, im); b3.append(row); grid.append(p3);
+  const [p4, b4] = panel('Preferences', '');
+  b4.append(Toggle(!!get('quiet', false), 'Turn off celebrations', (v) => { set('quiet', v); toast(v ? 'Celebrations off.' : 'Celebrations on.'); }));
+  grid.append(p4);
+  app.append(grid);
+}
+
+function body() { const app = document.getElementById('app'); app.innerHTML = ''; ({ dash, skills, questions, rounds, sources, settings })[ui.tab](app); }
+function render() { closePop(); sidebar(); topbar(); toolbar(); body(); }
+const _confetti = confetti; confetti = () => { if (!get('quiet', false)) _confetti(); };
+render();
+let rz = 0; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => ui.tab === 'dash' && body(), 200); });
+
+// ================================================================== PWA
+if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+var deferredInstall = null;
+addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstall = e; const b = document.getElementById('install'); if (b) b.hidden = false; });
+async function install() { if (!deferredInstall) return; deferredInstall.prompt(); await deferredInstall.userChoice; deferredInstall = null; document.getElementById('install').hidden = true; }
+</script>
+</body>
+</html>
