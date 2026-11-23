@@ -1,7 +1,7 @@
 {
  "name": "Google 2027 Prep Tracker",
  "short_name": "Prep",
- "description": "Skills, questions and interview rounds for Google APM and FDE 2027.",
+ "description": "Jobs, skills, questions, reminders and daily plan for Google APM, FDE and fresher roles.",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",
