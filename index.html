@@ -54,8 +54,17 @@
   .btn.menu-btn { display:none; }
   .page { padding:22px clamp(16px,3vw,32px) 60px; max-width:1240px; width:100%; }
   .overlay { display:none; }
+  .prow { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin:4px 0; }
+  .prow > :first-child { flex:1 1 180px; min-width:0; }
+  .prow .btn.ghost { height:32px; padding:0 10px; font-size:13px; }
+  @media (max-width:560px) {
+    .topbar { flex-wrap:wrap; row-gap:8px; }
+    .topbar .grow { flex:1 1 calc(100% - 56px); }
+    .topbar > :last-child { flex:1 1 100%; }
+    .topbar > :last-child .dd-btn { width:100%; }
+  }
   @media (max-width:960px) {
-    .app { grid-template-columns:1fr; }
+    .app { grid-template-columns:minmax(0,1fr); }
     .sidebar { position:fixed; left:0; top:0; bottom:0; width:280px; transform:translateX(-102%); transition:transform .25s ease; box-shadow:var(--shadow-lg); }
     .sidebar.open { transform:none; }
     .overlay.on { display:block; position:fixed; inset:0; background:rgba(16,24,40,.35); z-index:35; }
@@ -179,7 +188,7 @@
   .kpi .note b.down { color:var(--bad-700); }
   .cols { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:16px; margin-bottom:16px; }
   .cols2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
-  @media (max-width:1100px) { .cols, .cols2 { grid-template-columns:1fr; } }
+  @media (max-width:1100px) { .cols, .cols2 { grid-template-columns:minmax(0,1fr); } }
   .nba { display:flex; gap:14px; align-items:flex-start; background:linear-gradient(180deg, var(--brand-50), #fff 70%); border:1px solid var(--brand-100); border-radius:var(--r); padding:14px 16px; }
   .nba .ic { width:36px; height:36px; border-radius:10px; background:var(--brand); color:#fff; display:grid; place-items:center; flex:none; }
   .nba .t { font-weight:700; }
@@ -1050,9 +1059,8 @@ function plan(app) {
   const [p1, b1] = panel('Today\'s routine', `${doneN} of ${rt.length} done. Resets every day.`);
   const tasks = el('div', 'tasks');
   rt.forEach((t, i) => {
-    const row = el('div'); row.style.cssText = 'display:flex;align-items:center;gap:6px';
+    const row = el('div', 'prow');
     const cb = Checkbox(get(k + i, false), t, (on) => { set(k + i, on); if (on) { logAction(); toast('Done. +10 XP'); } render(); });
-    cb.style.flex = '1';
     const del = el('button', 'btn ghost', 'Remove'); del.type = 'button'; del.onclick = () => { set('routine', rt.filter((_, j) => j !== i)); render(); };
     row.append(cb, del); tasks.append(row);
   });
@@ -1067,8 +1075,8 @@ function plan(app) {
   const [p2, b2] = panel('Reminders', 'Alerts appear while this app is open. Use the calendar file for alerts when it is closed.');
   const list = rems().slice().sort((a, b) => a.at.localeCompare(b.at));
   for (const r of list) {
-    const row = el('div'); row.style.cssText = 'display:flex;align-items:center;gap:6px;margin:4px 0';
-    const cb = Checkbox(r.done, r.t, (on) => { const all = rems(); all.find((x) => x.id === r.id).done = on; set('rem', all); render(); }); cb.style.flex = '1';
+    const row = el('div', 'prow');
+    const cb = Checkbox(r.done, r.t, (on) => { const all = rems(); all.find((x) => x.id === r.id).done = on; set('rem', all); render(); }); 
     const when = el('span', 'badge ' + (!r.done && new Date(r.at) <= new Date() ? 'bad' : ''), fmtAt(r.at));
     const del = el('button', 'btn ghost', 'Remove'); del.type = 'button'; del.onclick = () => { set('rem', rems().filter((x) => x.id !== r.id)); render(); };
     row.append(cb, when, del); b2.append(row);
