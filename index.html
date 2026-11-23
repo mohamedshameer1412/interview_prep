@@ -322,6 +322,18 @@ const SKILLS = [
     tasks:['Keep a note: product, a problem you noticed, your fix, how you would measure it','Cover Maps, YouTube, Gmail, Pay, Search, Photos, Gemini, Lens'] },
   { id:'enh-referral', role:'both', kind:'enhance', area:'Profile', title:'Referral and profile consistency', why:'A referral is the biggest boost on selective roles; mismatched profiles look careless.',
     tasks:['Ask a CEG senior or connection at Google for a referral before applying','Resume, LinkedIn and portfolio titles match (done: Freelance Developer)','Real transcript uploaded; degree name matches it'] },
+  { id:'gap-langgraph', role:'fde', kind:'gap', area:'Technical', title:'Multi-agent frameworks: LangGraph, CrewAI, Google ADK', why:'Google FDE, Apple and HCLTech postings all name agent frameworks and patterns such as ReAct and self-reflection.',
+    tasks:['Rebuild one NEXUS agent flow in LangGraph','Learn the patterns: ReAct, self-reflection, hierarchical delegation','Build one small agent with Google ADK and compare it with LangGraph','Explain state management and why agents fail in production'] },
+  { id:'gap-vector', role:'both', kind:'gap', area:'Technical', title:'Vector databases and RAG evaluation', why:'Apple and Google postings ask for vector databases, embeddings and semantic search over enterprise data.',
+    tasks:['Try FAISS, Chroma and pgvector on the same documents','Learn hybrid search (keyword plus vector) and re-ranking','Measure retrieval with recall@k and answer faithfulness on 20 test questions','Write one page on what you measured and changed'] },
+  { id:'gap-llmops', role:'fde', kind:'gap', area:'Technical', title:'LLM metrics, tracing and cost', why:'The Google FDE posting lists tokens per second, cost per request and tracing as preferred knowledge.',
+    tasks:['Log tokens, latency and cost per request in NEXUS or JobGenie','Add request tracing (for example Langfuse or OpenTelemetry)','Explain how to cut cost and latency without losing quality'] },
+  { id:'gap-mcp', role:'fde', kind:'gap', area:'Technical', title:'Secure tool-calling: MCP and OAuth', why:'The Apple AiDP posting prefers secure agentic workflows with MCP, tool-calling and OAuth.',
+    tasks:['Build a small MCP server with two tools','Learn OAuth 2.0 basics (authorization code flow, scopes, tokens)','Explain how you would stop an agent from leaking data or running a harmful tool'] },
+  { id:'gap-cs-core', role:'both', kind:'gap', area:'Coding', title:'CS fundamentals for campus tests and interviews', why:'Campus drives (HCLTech, Cisco, Airkit) test OS, DBMS, networks and OOP besides coding.',
+    tasks:['OS: processes vs threads, scheduling, deadlock, memory','DBMS: normalisation, indexes, transactions, joins','Networks: HTTP, TCP/IP, DNS, what happens when you open a URL','OOP and SOLID: explain each with a short example'] },
+  { id:'gap-oa', role:'both', kind:'gap', area:'Coding', title:'Online assessments: aptitude and timed coding', why:'Most campus hiring starts with a timed online test, so practise the format, not only the topics.',
+    tasks:['Take one full timed coding test a week (HackerRank or LeetCode contest)','Practise quant and logical reasoning 30 minutes a day','Review every wrong answer and note the pattern'] },
 ];
 
 const ROUNDS = {
@@ -421,6 +433,7 @@ const sv = (t, a = {}) => { const e = document.createElementNS(NS, t); for (cons
 const P = {
   dash: 'M3 12l9-8 9 8M5 10v10h5v-6h4v6h5V10', skills: 'M9 11l3 3 8-8M20 12v7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h11', questions: 'M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z',
   rounds: 'M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 9a9 9 0 0 1-9 9', sources: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5zM8 7h8M8 11h6', settings: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z',
+  plan: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01', jobs: 'M3 7h18v13H3zM8 7V4h8v3M3 13h18',
   chev: 'M6 9l6 6 6-6', check: 'M20 6L9 17l-5-5', flame: 'M12 22c4 0 7-3 7-7 0-4-3-6-4-9-1 3-3 4-4 4 0-2-1-4-2-6-2 3-4 6-4 10 0 5 3 8 7 8z', target: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12zM12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
   cal: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z', bolt: 'M13 2L3 14h9l-1 8 10-12h-9z', search: 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM21 21l-4.3-4.3', menu: 'M4 6h16M4 12h16M4 18h16',
   play: 'M6 4l14 8-14 8z', left: 'M15 18l-6-6 6-6', right: 'M9 18l6-6-6-6', down: 'M12 5v14M5 12l7 7 7-7', up: 'M12 19V5M5 12l7-7 7 7', trend: 'M3 17l6-6 4 4 8-8M14 7h7v7', star: 'M12 2l3 7 7 .7-5.3 4.8 1.6 7.5L12 18l-6.3 4 1.6-7.5L2 9.7 9 9z',
@@ -724,14 +737,14 @@ function ring(v, max, size = 92) {
 }
 
 // ================================================================== chrome
-const TABS = [['dash', 'Overview'], ['skills', 'Skills'], ['questions', 'Questions'], ['rounds', 'Interview rounds'], ['sources', 'Sources'], ['settings', 'Settings']];
-const TITLES = { dash: ['Overview', 'Your preparation at a glance'], skills: ['Skills', 'Close the gaps and strengthen what you have'], questions: ['Question bank', 'Practise out loud, then rate yourself'], rounds: ['Interview rounds', 'Track each stage as you move through it'], sources: ['Sources', 'Where the reported questions come from'], settings: ['Settings', 'Goals, timer and your data'] };
+const TABS = [['dash', 'Overview'], ['plan', 'Plan and reminders'], ['jobs', 'Jobs'], ['skills', 'Skills'], ['questions', 'Questions'], ['rounds', 'Interview rounds'], ['sources', 'Sources'], ['settings', 'Settings']];
+const TITLES = { dash: ['Overview', 'Your preparation at a glance'], plan: ['Plan and reminders', 'Daily routine, deadlines and alerts'], jobs: ['Jobs', 'Roles you can apply for, with deadlines and status'], skills: ['Skills', 'Close the gaps and strengthen what you have'], questions: ['Question bank', 'Practise out loud, then rate yourself'], rounds: ['Interview rounds', 'Track each stage as you move through it'], sources: ['Sources', 'Where the reported questions come from'], settings: ['Settings', 'Goals, timer and your data'] };
 function sidebar() {
   const sb = document.getElementById('sidebar'); sb.innerHTML = '';
   const br = el('div', 'brand'); const lg = el('div', 'logo'); lg.append(icon('check')); const bt = el('div'); bt.append(el('b', null, 'Prep Tracker'), el('small', null, 'Google APM and FDE 2027')); br.append(lg, bt); sb.append(br);
   const counts = { skills: SKILLS.filter((s) => roleOk(s.role) && statusOf(s) !== 'done').length, questions: Q.filter((q, i) => roleOk(q[2]) && conf(i) < 4).length };
   TABS.forEach(([k, l], i) => {
-    if (i === 4) sb.append(el('div', 'navgroup', 'More'));
+    if (k === 'sources') sb.append(el('div', 'navgroup', 'More'));
     const b = el('button', 'nav' + (ui.tab === k ? ' on' : '')); b.type = 'button'; if (ui.tab === k) b.setAttribute('aria-current', 'page');
     b.append(icon(k === 'dash' ? 'dash' : k), el('span', null, l)); if (counts[k]) b.append(el('span', 'count', String(counts[k])));
     b.onclick = () => { setUi('tab', k); scrollTo({ top: 0 }); document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('on'); };
@@ -757,7 +770,7 @@ function topbar() {
 document.getElementById('overlay').onclick = () => { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('on'); };
 function toolbar() {
   const t = document.getElementById('toolbar'); t.innerHTML = '';
-  if (ui.tab === 'sources' || ui.tab === 'settings') return;
+  if (['sources', 'settings', 'plan', 'jobs'].includes(ui.tab)) return;
   t.append(Segmented([['all', 'Both roles'], ['apm', 'APM'], ['fde', 'FDE Intern']], ui.role, (v) => setUi('role', v), 'Role'));
   if (ui.tab !== 'skills' && ui.tab !== 'questions') return;
   const areas = [...new Set(ui.tab === 'skills' ? SKILLS.map((s) => s.area) : Q.map((q) => q[1]))].sort();
@@ -785,6 +798,7 @@ function nextAction() {
 }
 
 function dash(app) {
+  app.append(duePanel());
   const qs = Q.map((q, i) => [q, i]).filter(([q]) => roleOk(q[2]));
   const sk = SKILLS.filter((s) => roleOk(s.role));
   const st = streak(), n = get('log', {})[today()] || 0, G = goalN();
@@ -965,7 +979,142 @@ function settings(app) {
   app.append(grid);
 }
 
-function body() { const app = document.getElementById('app'); app.innerHTML = ''; ({ dash, skills, questions, rounds, sources, settings })[ui.tab](app); }
+// ================================================================== jobs, plan, reminders
+// fit: good | stretch | later | no
+const JOBS = [
+  ['google-apm', 'Google', 'Associate Product Manager, University Graduate 2027', 'Bengaluru', 'stretch', '2026-11-24', 'Resume and an English transcript are required, no cover letter. Arrears show on the transcript. A start in Apr to Aug 2027 needs the degree finished.', 'https://google.com/about/careers/applications/jobs/results/101007950268506822-associate-product-manager-university-graduate-2027-start'],
+  ['lji-apm', 'Loyalty Juggernaut', 'Associate Product Manager (campus hiring, 2027 batch)', 'Hyderabad', 'good', '', 'Found on a job aggregator. Confirm it is still open before applying.', 'https://scoutify.com/companies/lji/jobs/3452045/'],
+  ['peoplebox-apm', 'Peoplebox', 'Associate Product Manager', 'Bengaluru', 'good', '', 'Listing says new grads are ok. Pay is shown as 12 to 15 with no unit.', 'https://www.ycombinator.com/companies/peoplebox/jobs/SZFeWUo-associate-product-manager-apm'],
+  ['hyperverge-pm', 'HyperVerge', 'Product Manager Associate', 'Bengaluru', 'good', '', 'Computer vision company, so your Alpha Cloud Labs work fits. Posted Jul 2026. Experience required is not stated.', 'https://jobs.spacecapital.com/companies/hyperverge/jobs/86433464-product-manager-associate'],
+  ['hcl-agentic', 'HCLTech', 'Agentic AI Engineer II, agent orchestration and RAG (campus)', 'Chennai or Greater Noida', 'good', '', 'Close to your multi-agent and RAG work. A related HCLTech campus listing targets IIT, NIT and DTU, so confirm CEG is accepted.', 'https://careers.hcltech.com/job/Campus-Competent/93547-en_US'],
+  ['airkit-swe', 'Airkit', 'Software Engineering AMTS (2027 graduates)', 'Bengaluru or Hyderabad', 'stretch', '', 'Lists B.E. 2027 in Electronics as eligible. Posted Aug 2026, so it may be closed.', 'https://jobs.accel.com/companies/airkit-2/jobs/90396368-software-engineering-amts'],
+  ['cisco-swe', 'Cisco', 'Software Engineer, India Engineering (2027 graduates)', 'Pan-India', 'stretch', '', 'Leans toward system programming and C. Listing came from an aggregator.', 'https://thejobcompany.co.in/frontend/job_details.php?job_id=6067'],
+  ['apple-ai', 'Apple', 'Software Engineer: AI (role 200689026-0321)', 'Bengaluru', 'later', '', 'Needs a Bachelor\'s degree plus 1+ years in software and applied AI/ML. Your skills match well, so apply after you graduate.', ''],
+  ['apple-aidp', 'Apple', 'Software Engineer, AI and Data Platforms (role 200692393-0321)', 'Bengaluru', 'no', '', 'Needs 3+ years of experience.', ''],
+  ['google-fde', 'Google', 'Forward Deployed Engineer Intern, 2027', 'Bengaluru', 'no', '', 'Needs the penultimate year of a degree. You finish in May 2027.', ''],
+  ['google-tpm', 'Google', 'Technical Program Manager', 'Bengaluru', 'no', '', 'Needs 1 year of technical program management experience.', ''],
+  ['google-phd', 'Google', 'Software Engineering PhD Intern, Summer 2027', 'Bengaluru, Hyderabad, Pune', 'no', '', 'Requires being in a PhD program.', ''],
+];
+const FIT = { good: ['ok', 'Good fit'], stretch: ['warn', 'Stretch'], later: ['brand', 'Apply after graduating'], no: ['bad', 'Not eligible'] };
+const JSTAT = [['todo', 'Not applied'], ['applied', 'Applied'], ['oa', 'Online test'], ['interview', 'Interviewing'], ['offer', 'Offer'], ['rejected', 'Rejected'], ['skip', 'Skipped']];
+const daysTo = (d) => Math.ceil((new Date(d + 'T23:59:59') - new Date()) / 864e5);
+
+const REM_SEED = [
+  ['Get your transcript (Anna University portal or exam cell)', '2026-11-24T08:30'],
+  ['Submit the Google APM application: resume and transcript, no cover letter', '2026-11-24T11:00'],
+  ['Last chance: Google APM closes end of day', '2026-11-24T20:00'],
+];
+const ROUTINE_SEED = ['Arrears: 2 focused hours on one subject', 'DSA: 2 problems, explain the approach out loud first', 'Spoken English: 30 minutes (explain a project on camera)', 'Product: 1 timed product or metrics question out loud', 'Jobs: apply to 2 roles or follow up on 1', 'Review: write 3 lines on what you learned today'];
+const rems = () => { if (!get('rem', null)) set('rem', REM_SEED.map(([t, at], i) => ({ id: 'r' + i, t, at, done: false, fired: false }))); return get('rem', []); };
+const fmtAt = (at) => new Date(at).toLocaleString(undefined, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+const dueNow = () => rems().filter((r) => !r.done && new Date(r.at) <= new Date());
+
+function checkDue() {
+  const list = rems(); let changed = false;
+  for (const r of list) {
+    if (r.done || r.fired || new Date(r.at) > new Date()) continue;
+    r.fired = true; changed = true; toast('Reminder: ' + r.t);
+    try { if (window.Notification && Notification.permission === 'granted') new Notification('Prep reminder', { body: r.t, icon: 'icon-192.png' }); } catch {}
+  }
+  if (changed) { set('rem', list); if (ui.tab === 'dash' || ui.tab === 'plan') render(); }
+}
+setInterval(checkDue, 30000);
+
+function duePanel() {
+  const list = rems().filter((r) => !r.done).sort((a, b) => a.at.localeCompare(b.at));
+  const jobs = JOBS.filter((j) => j[5] && !['applied', 'oa', 'interview', 'offer', 'rejected', 'skip'].includes(get('job:' + j[0], j[4] === 'no' || j[4] === 'later' ? 'skip' : 'todo')));
+  const [p, b] = panel('Due and coming up', 'What needs you next');
+  if (!list.length && !jobs.length) { b.append(el('div', 'muted', 'Nothing due. Add a reminder in Plan and reminders.')); return p; }
+  for (const j of jobs) { const n = daysTo(j[5]); const row = el('div'); row.style.cssText = 'display:flex;gap:10px;align-items:center;margin:6px 0'; row.append(el('span', 'badge ' + (n <= 1 ? 'bad' : 'warn'), n < 0 ? 'Closed' : n === 0 ? 'Today' : n + (n === 1 ? ' day left' : ' days left')), el('b', null, j[1] + ': ' + j[2])); b.append(row); }
+  for (const r of list.slice(0, 4)) { const over = new Date(r.at) <= new Date(); const row = el('div'); row.style.cssText = 'display:flex;gap:10px;align-items:center;margin:6px 0'; row.append(el('span', 'badge ' + (over ? 'bad' : ''), over ? 'Due now' : fmtAt(r.at)), el('span', null, r.t)); b.append(row); }
+  return p;
+}
+
+function icsExport() {
+  const z = (n) => String(n).padStart(2, '0'); const f = (d) => `${d.getFullYear()}${z(d.getMonth() + 1)}${z(d.getDate())}T${z(d.getHours())}${z(d.getMinutes())}00`;
+  const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Prep Tracker//EN'];
+  for (const r of rems().filter((x) => !x.done)) {
+    const a = new Date(r.at), e = new Date(+a + 30 * 6e4);
+    L.push('BEGIN:VEVENT', 'UID:' + r.id + '-' + r.at + '@prep-tracker', 'DTSTAMP:' + f(new Date()), 'DTSTART:' + f(a), 'DTEND:' + f(e), 'SUMMARY:' + r.t.replace(/[,;\n]/g, ' '), 'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + r.t.replace(/[,;\n]/g, ' '), 'TRIGGER:-PT30M', 'END:VALARM', 'END:VEVENT');
+  }
+  L.push('END:VCALENDAR');
+  const a = el('a'); a.href = URL.createObjectURL(new Blob([L.join('\r\n')], { type: 'text/calendar' })); a.download = 'prep-reminders.ics'; a.click();
+  toast('Calendar file saved. Open it to add the reminders to Google Calendar.');
+}
+
+function plan(app) {
+  const cols = el('div', 'cols2');
+  // daily routine
+  const rt = get('routine', ROUTINE_SEED); const k = 'rt:' + today();
+  const doneN = rt.filter((_, i) => get(k + i, false)).length;
+  const [p1, b1] = panel('Today\'s routine', `${doneN} of ${rt.length} done. Resets every day.`);
+  const tasks = el('div', 'tasks');
+  rt.forEach((t, i) => {
+    const row = el('div'); row.style.cssText = 'display:flex;align-items:center;gap:6px';
+    const cb = Checkbox(get(k + i, false), t, (on) => { set(k + i, on); if (on) { logAction(); toast('Done. +10 XP'); } render(); });
+    cb.style.flex = '1';
+    const del = el('button', 'btn ghost', 'Remove'); del.type = 'button'; del.onclick = () => { set('routine', rt.filter((_, j) => j !== i)); render(); };
+    row.append(cb, del); tasks.append(row);
+  });
+  b1.append(tasks);
+  const add = el('div'); add.style.cssText = 'display:flex;gap:8px;margin-top:12px';
+  const ai = el('input', 'input'); ai.style.paddingLeft = '12px'; ai.placeholder = 'Add a daily task'; ai.setAttribute('aria-label', 'New daily task');
+  const ab = el('button', 'btn', 'Add'); ab.type = 'button';
+  ab.onclick = () => { if (!ai.value.trim()) return; set('routine', [...rt, ai.value.trim()]); render(); };
+  ai.onkeydown = (e) => { if (e.key === 'Enter') ab.onclick(); };
+  add.append(ai, ab); b1.append(add); cols.append(p1);
+  // reminders
+  const [p2, b2] = panel('Reminders', 'Alerts appear while this app is open. Use the calendar file for alerts when it is closed.');
+  const list = rems().slice().sort((a, b) => a.at.localeCompare(b.at));
+  for (const r of list) {
+    const row = el('div'); row.style.cssText = 'display:flex;align-items:center;gap:6px;margin:4px 0';
+    const cb = Checkbox(r.done, r.t, (on) => { const all = rems(); all.find((x) => x.id === r.id).done = on; set('rem', all); render(); }); cb.style.flex = '1';
+    const when = el('span', 'badge ' + (!r.done && new Date(r.at) <= new Date() ? 'bad' : ''), fmtAt(r.at));
+    const del = el('button', 'btn ghost', 'Remove'); del.type = 'button'; del.onclick = () => { set('rem', rems().filter((x) => x.id !== r.id)); render(); };
+    row.append(cb, when, del); b2.append(row);
+  }
+  const f = el('div'); f.style.cssText = 'display:flex;gap:8px;margin-top:12px;flex-wrap:wrap';
+  const ti = el('input', 'input'); ti.style.cssText = 'padding-left:12px;flex:2;min-width:160px'; ti.placeholder = 'New reminder'; ti.setAttribute('aria-label', 'Reminder text');
+  const di = el('input', 'input'); di.type = 'datetime-local'; di.style.cssText = 'padding-left:12px;flex:1;min-width:180px'; di.setAttribute('aria-label', 'Reminder date and time');
+  const rb = el('button', 'btn primary', 'Add reminder'); rb.type = 'button';
+  rb.onclick = () => { if (!ti.value.trim() || !di.value) return toast('Enter text and a date and time.'); set('rem', [...rems(), { id: 'r' + Date.now(), t: ti.value.trim(), at: di.value, done: false, fired: false }]); render(); };
+  f.append(ti, di, rb); b2.append(f);
+  const acts = el('div'); acts.style.cssText = 'display:flex;gap:8px;margin-top:12px;flex-wrap:wrap';
+  const ib = el('button', 'btn', 'Download calendar file (.ics)'); ib.type = 'button'; ib.onclick = icsExport;
+  const nb = el('button', 'btn', window.Notification && Notification.permission === 'granted' ? 'Notifications on' : 'Turn on notifications'); nb.type = 'button';
+  nb.onclick = async () => { if (!window.Notification) return toast('This browser does not support notifications.'); const r = await Notification.requestPermission(); toast(r === 'granted' ? 'Notifications on.' : 'Notifications blocked in the browser.'); render(); };
+  acts.append(ib, nb); b2.append(acts); cols.append(p2);
+  app.append(cols);
+}
+
+function jobs(app) {
+  const st = (j) => get('job:' + j[0], j[4] === 'no' || j[4] === 'later' ? 'skip' : 'todo');
+  const open = JOBS.filter((j) => j[4] === 'good' || j[4] === 'stretch');
+  const applied = open.filter((j) => st(j) !== 'todo' && st(j) !== 'skip').length;
+  const [ps, bs] = panel('Applications', `${applied} of ${open.length} open roles applied. Listings came from aggregators, so check each one is still open.`);
+  const pg = el('div', 'progress ok'); const pi = el('i'); pi.style.width = (100 * applied / open.length) + '%'; pg.append(pi); bs.append(pg); app.append(ps);
+  const group = (title, sub, rows) => {
+    const [p, b] = panel(title, sub);
+    for (const j of rows) {
+      const box = el('div'); box.style.cssText = 'border-top:1px solid var(--border);padding:14px 0';
+      const top = el('div'); top.style.cssText = 'display:flex;gap:10px;align-items:center;flex-wrap:wrap';
+      const [fc, fl] = FIT[j[4]];
+      top.append(el('b', null, j[1] + ': ' + j[2]), el('span', 'badge ' + fc, fl), el('span', 'badge', j[3]));
+      if (j[5]) { const n = daysTo(j[5]); top.append(el('span', 'badge ' + (n <= 1 ? 'bad' : 'warn'), n < 0 ? 'Closed ' + j[5] : 'Closes ' + j[5] + (n === 0 ? ' (today)' : ' (' + n + (n === 1 ? ' day)' : ' days)')))); }
+      box.append(top, el('div', 'muted', j[6]));
+      const act = el('div'); act.style.cssText = 'display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap';
+      act.append(Dropdown({ label: 'Status', options: JSTAT, value: st(j), onChange: (v) => { set('job:' + j[0], v); if (v === 'applied') { logAction(); toast('Marked as applied. +10 XP'); } render(); } }));
+      if (j[7]) { const a = el('a', 'btn', 'Open posting'); a.href = j[7]; a.target = '_blank'; a.rel = 'noopener'; act.append(a); }
+      box.append(act, notes('job:' + j[0])); b.append(box);
+    }
+    app.append(p);
+  };
+  group('Apply now', 'Roles that accept a B.E. student graduating in 2027.', open);
+  group('Later or not eligible', 'Kept here so you know why, and when to come back.', JOBS.filter((j) => j[4] === 'later' || j[4] === 'no'));
+}
+checkDue();
+
+function body() { const app = document.getElementById('app'); app.innerHTML = ''; ({ dash, plan, jobs, skills, questions, rounds, sources, settings })[ui.tab](app); }
 function render() { closePop(); sidebar(); topbar(); toolbar(); body(); }
 const _confetti = confetti; confetti = () => { if (!get('quiet', false)) _confetti(); };
 render();
